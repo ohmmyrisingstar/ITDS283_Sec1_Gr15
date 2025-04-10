@@ -30,10 +30,11 @@ class AboutUsPage extends StatelessWidget {
 
       body: Padding(
         padding: const EdgeInsets.all(20),
+        child: Center(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 16),
+            const SizedBox(height: 150),
             const Text(
               "Scan here to know more about us",
               style: TextStyle(color: Colors.white70, fontSize: 16),
@@ -65,6 +66,7 @@ class AboutUsPage extends StatelessWidget {
           ],
         ),
       ),
+    ),
 
       floatingActionButton: FloatingActionButton(
         onPressed: () {
