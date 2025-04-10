@@ -4,6 +4,7 @@ import 'settings_page.dart';
 import 'addmed.dart';
 import 'searchpage.dart';
 import 'amount.dart';
+import 'history.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -92,7 +93,9 @@ class _HomePageState extends State<HomePage> {
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.receipt_long, color: Colors.white),
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryPage()));
+                  },
                 ),
               ],
             ),
@@ -115,7 +118,7 @@ class _HomePageState extends State<HomePage> {
 
           const SizedBox(height: 16),
 
-          // Combined Weekday + Date
+          // Weekday + Date
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
@@ -123,8 +126,7 @@ class _HomePageState extends State<HomePage> {
               children: getWeekDates(selectedDate).map((date) {
                 final isSelected = DateFormat('yyyy-MM-dd').format(date) ==
                     DateFormat('yyyy-MM-dd').format(selectedDate);
-                final weekdayLabel = DateFormat('E').format(date); // Mon, Tue
-
+                final weekdayLabel = DateFormat('E').format(date);
                 return Column(
                   children: [
                     Text(
@@ -206,7 +208,7 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
 
-      // FAB
+      // Floating Action Button
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(context, MaterialPageRoute(builder: (_) => const AddMedicinePage()));
@@ -217,7 +219,7 @@ class _HomePageState extends State<HomePage> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
-      // Bottom Navigation Bar
+      // Bottom Navigation Bar (4 buttons only)
       bottomNavigationBar: BottomAppBar(
         color: Colors.black,
         child: Row(
