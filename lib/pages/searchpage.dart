@@ -49,7 +49,7 @@ class _SearchPageState extends State<SearchPage> {
 • ปริมาณ: ${doc['dosage']}  
 • วิธีใช้: ${doc['usage']}  
 • ผลข้างเคียง: ${doc['side_effects']}  
-• ข้อควรระวัง: ${doc['precautions']}
+• ข้อควรระวัง: ${doc['caution']}
     ''';
       } else {
         imageUrl = null;
