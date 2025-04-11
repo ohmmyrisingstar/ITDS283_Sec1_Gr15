@@ -19,6 +19,7 @@ class _SearchPageState extends State<SearchPage> {
   bool _hasSearched = false;
 
   String? result;
+  String? imageUrl;
 
   Future<void> _performSearch() async {
     final query = _searchController.text.trim().toLowerCase();
@@ -40,6 +41,7 @@ class _SearchPageState extends State<SearchPage> {
       if (snapshot.docs.isNotEmpty) {
         final doc = snapshot.docs.first.data();
 
+        imageUrl = doc['image_url']; // ✅ เพิ่มบรรทัดนี้
         result = '''
 📦 ${_capitalize(doc['name'])}
 
@@ -48,11 +50,13 @@ class _SearchPageState extends State<SearchPage> {
 • วิธีใช้: ${doc['usage']}  
 • ผลข้างเคียง: ${doc['side_effects']}  
 • ข้อควรระวัง: ${doc['precautions']}
-      ''';
+    ''';
       } else {
+        imageUrl = null;
         result = "ไม่พบข้อมูลยาที่ค้นหา";
       }
     } catch (e) {
+      imageUrl = null;
       result = "เกิดข้อผิดพลาดในการค้นหา: $e";
     }
 
@@ -162,19 +166,52 @@ class _SearchPageState extends State<SearchPage> {
               Expanded(
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.black26,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: SingleChildScrollView(
-                    child: Text(
-                      result ?? '',
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                  child: Card(
+                    color: const Color(0xFF1C1E32),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (imageUrl != null)
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.network(
+                                  imageUrl!,
+                                  height: 160,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorBuilder:
+                                      (context, error, stackTrace) =>
+                                          const Text(
+                                            'โหลดรูปไม่ได้',
+                                            style: TextStyle(
+                                              color: Colors.white54,
+                                            ),
+                                          ),
+                                ),
+                              ),
+                            const SizedBox(height: 16),
+                            Text(
+                              result ?? '',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                height: 1.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
+              )
           ],
         ),
       ),
