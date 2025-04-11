@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import '../components/navbar.dart'; // ✅ import bottom nav
+import 'homepage.dart';
+import 'amount.dart';
+import 'settings_page.dart';
+import 'addmed.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -36,6 +41,18 @@ class _SearchPageState extends State<SearchPage> {
     });
   }
 
+  void _onTabTapped(int index) {
+    if (index == 0) {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomePage()));
+    } else if (index == 1) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => AmountPage()));
+    } else if (index == 2) {
+      // current page
+    } else if (index == 3) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage()));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,7 +66,7 @@ class _SearchPageState extends State<SearchPage> {
           style: TextStyle(
             color: Colors.white,
             fontSize: 22,
-            fontWeight: FontWeight.bold, // 💪 หนาเท่ากับ Settings
+            fontWeight: FontWeight.bold,
           ),
         ),
         leading: const SizedBox(),
@@ -90,7 +107,7 @@ class _SearchPageState extends State<SearchPage> {
                   ElevatedButton(
                     onPressed: _performSearch,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent, 
+                      backgroundColor: Colors.blueAccent,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       shape: RoundedRectangleBorder(
@@ -101,7 +118,7 @@ class _SearchPageState extends State<SearchPage> {
                     child: const Text(
                       "Search",
                       style: TextStyle(
-                        fontWeight: FontWeight.bold, 
+                        fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
                     ),
@@ -136,6 +153,21 @@ class _SearchPageState extends State<SearchPage> {
               ),
           ],
         ),
+      ),
+
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const AddMedicinePage()));
+        },
+        backgroundColor: Colors.white,
+        child: const Icon(Icons.favorite, color: Colors.black, size: 32),
+        shape: const CircleBorder(),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+
+      bottomNavigationBar: BottomNavBar(
+        currentIndex: 2,
+        onTap: _onTabTapped,
       ),
     );
   }

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
+
 import 'aboutus.dart';
 import 'searchpage.dart';
 import 'homepage.dart';
 import 'addmed.dart';
 import 'amount.dart';
+import '../components/navbar.dart'; // ✅ BottomNavBar component
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -26,7 +28,7 @@ class _SettingsPageState extends State<SettingsPage> {
     } else if (index == 2) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchPage()));
     } else if (index == 3) {
-      // already on this page
+      // current page
     }
   }
 
@@ -41,7 +43,7 @@ class _SettingsPageState extends State<SettingsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top bar
+              // Header
               Stack(
                 children: [
                   const Center(
@@ -61,16 +63,10 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
 
               const SizedBox(height: 16),
-
               const Text(
                 "Hi, User",
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white70,
-                ),
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600, color: Colors.white70),
               ),
-
               const SizedBox(height: 20),
 
               // Profile + Username
@@ -138,7 +134,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
               const SizedBox(height: 32),
 
-              // Reminder toggle
+              // Reminder Toggle
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -238,7 +234,6 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       ),
 
-      //  FAB
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(context, MaterialPageRoute(builder: (_) => const AddMedicinePage()));
@@ -249,19 +244,9 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
-      //  Bottom Navigation Bar
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.black,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            IconButton(icon: const Icon(Icons.home), color: Colors.grey, onPressed: () => _onTabTapped(0)),
-            IconButton(icon: const Icon(Icons.medical_services), color: Colors.grey, onPressed: () => _onTabTapped(1)),
-            const SizedBox(width: 48),
-            IconButton(icon: const Icon(Icons.search), color: Colors.grey, onPressed: () => _onTabTapped(2)),
-            IconButton(icon: const Icon(Icons.settings), color: Colors.white, onPressed: () => _onTabTapped(3)),
-          ],
-        ),
+      bottomNavigationBar: BottomNavBar(
+        currentIndex: 3,
+        onTap: _onTabTapped,
       ),
     );
   }

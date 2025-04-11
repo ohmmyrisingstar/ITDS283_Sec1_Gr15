@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../components/navbar.dart'; // ✅ import component
 import 'addmed.dart';
 import 'homepage.dart';
 import 'searchpage.dart';
@@ -27,7 +28,7 @@ class HistoryPage extends StatelessWidget {
     },
   ];
 
-  void _navigateTab(BuildContext context, int index) {
+  void _onTabTapped(BuildContext context, int index) {
     if (index == 0) {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomePage()));
     } else if (index == 1) {
@@ -174,18 +175,9 @@ class HistoryPage extends StatelessWidget {
         shape: const CircleBorder(),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.black,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            IconButton(icon: const Icon(Icons.home), color: Colors.grey, onPressed: () => _navigateTab(context, 0)),
-            IconButton(icon: const Icon(Icons.medical_services), color: Colors.grey, onPressed: () => _navigateTab(context, 1)),
-            const SizedBox(width: 48),
-            IconButton(icon: const Icon(Icons.search), color: Colors.grey, onPressed: () => _navigateTab(context, 2)),
-            IconButton(icon: const Icon(Icons.settings), color: Colors.grey, onPressed: () => _navigateTab(context, 3)),
-          ],
-        ),
+      bottomNavigationBar: BottomNavBar(
+        currentIndex: -1, // ✅ ไม่มีปุ่ม history ใน navbar
+        onTap: (index) => _onTabTapped(context, index),
       ),
     );
   }

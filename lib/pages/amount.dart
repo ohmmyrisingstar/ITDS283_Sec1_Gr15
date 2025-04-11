@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../components/navbar.dart'; // ✅ เพิ่ม navbar component
 import 'addmed.dart';
 import 'homepage.dart';
 import 'searchpage.dart';
@@ -11,7 +12,7 @@ class AmountPage extends StatelessWidget {
     {"name": "Vitamins", "amount": 3},
   ];
 
-  void _navigateTab(BuildContext context, int index) {
+  void _onTabTapped(BuildContext context, int index) {
     if (index == 0) {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomePage()));
     } else if (index == 2) {
@@ -56,18 +57,9 @@ class AmountPage extends StatelessWidget {
         shape: const CircleBorder(),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.black,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            IconButton(icon: const Icon(Icons.home), color: Colors.grey, onPressed: () => _navigateTab(context, 0)),
-            IconButton(icon: const Icon(Icons.medical_services), color: Colors.white, onPressed: () {}),
-            const SizedBox(width: 48),
-            IconButton(icon: const Icon(Icons.search), color: Colors.grey, onPressed: () => _navigateTab(context, 2)),
-            IconButton(icon: const Icon(Icons.settings), color: Colors.grey, onPressed: () => _navigateTab(context, 3)),
-          ],
-        ),
+      bottomNavigationBar: BottomNavBar(
+        currentIndex: 1,
+        onTap: (index) => _onTabTapped(context, index),
       ),
     );
   }

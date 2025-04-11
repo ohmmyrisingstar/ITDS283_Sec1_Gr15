@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'settings_page.dart';
 import 'addmed.dart';
+import 'settings_page.dart';
 import 'searchpage.dart';
 import 'amount.dart';
 import 'history.dart';
+import '../components/navbar.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,16 +20,13 @@ class _HomePageState extends State<HomePage> {
   DateTime selectedDate = DateTime.now();
 
   void _onItemTapped(int index) {
+    if (index == 0) return;
     if (index == 1) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => AmountPage()));
     } else if (index == 2) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchPage()));
     } else if (index == 3) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage()));
-    } else {
-      setState(() {
-        _selectedIndex = index;
-      });
     }
   }
 
@@ -109,7 +107,10 @@ class _HomePageState extends State<HomePage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(_monthYearString(selectedDate), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                  Text(
+                    _monthYearString(selectedDate),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
                   const Icon(Icons.keyboard_arrow_down, color: Colors.white),
                 ],
               ),
@@ -219,19 +220,10 @@ class _HomePageState extends State<HomePage> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
-      // Bottom Navigation Bar (4 buttons only)
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.black,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            IconButton(icon: const Icon(Icons.home), color: Colors.white, onPressed: () => _onItemTapped(0)),
-            IconButton(icon: const Icon(Icons.medical_services), color: Colors.grey, onPressed: () => _onItemTapped(1)),
-            const SizedBox(width: 48),
-            IconButton(icon: const Icon(Icons.search), color: Colors.grey, onPressed: () => _onItemTapped(2)),
-            IconButton(icon: const Icon(Icons.settings), color: Colors.grey, onPressed: () => _onItemTapped(3)),
-          ],
-        ),
+      // ✅ Bottom NavBar as Component
+      bottomNavigationBar: BottomNavBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
       ),
     );
   }
