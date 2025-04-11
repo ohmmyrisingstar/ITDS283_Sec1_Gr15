@@ -4,6 +4,8 @@ import 'homepage.dart';
 import 'amount.dart';
 import 'settings_page.dart';
 import 'addmed.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -18,28 +20,50 @@ class _SearchPageState extends State<SearchPage> {
 
   String? result;
 
-  void _performSearch() {
+  Future<void> _performSearch() async {
     final query = _searchController.text.trim().toLowerCase();
+
+    if (query.isEmpty) return;
 
     setState(() {
       _hasSearched = true;
+      result = "กำลังค้นหา...";
+    });
 
-      // Mock search data
-      if (query == "aspirin") {
+    try {
+      final snapshot =
+          await FirebaseFirestore.instance
+              .collection('medicines')
+              .where('name', isEqualTo: query)
+              .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        final doc = snapshot.docs.first.data();
+
         result = '''
-📦 Aspirin
+📦 ${_capitalize(doc['name'])}
 
-• รูปแบบยา: Tablet  
-• ปริมาณ: 500 mg  
-• วิธีใช้: รับประทาน 1 เม็ดหลังอาหาร  
-• ผลข้างเคียง: อาจทำให้ปวดท้องหรือระคายเคือง  
-• ข้อควรระวัง: หลีกเลี่ยงในผู้ป่วยที่มีปัญหาเกี่ยวกับกระเพาะอาหาร
-        ''';
+• รูปแบบยา: ${doc['form']}  
+• ปริมาณ: ${doc['dosage']}  
+• วิธีใช้: ${doc['usage']}  
+• ผลข้างเคียง: ${doc['side_effects']}  
+• ข้อควรระวัง: ${doc['precautions']}
+      ''';
       } else {
         result = "ไม่พบข้อมูลยาที่ค้นหา";
       }
-    });
+    } catch (e) {
+      result = "เกิดข้อผิดพลาดในการค้นหา: $e";
+    }
+
+    setState(() {});
   }
+
+  String _capitalize(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1);
+  }
+
 
   void _onTabTapped(int index) {
     if (index == 0) {
