@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../components/navbar.dart'; // ✅ เพิ่ม navbar component
+import '../components/navbar.dart';
 import 'addmed.dart';
 import 'homepage.dart';
 import 'searchpage.dart';
@@ -50,7 +50,12 @@ class AmountPage extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => const AddMedicinePage()));
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => AddMedicinePage(selectedDate: DateTime.now()),
+            ),
+          );
         },
         backgroundColor: Colors.white,
         child: const Icon(Icons.favorite, color: Colors.black, size: 32),
@@ -95,7 +100,6 @@ class _PillCardState extends State<PillCard> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // รูปภาพ
           Container(
             width: 160,
             height: 160,
@@ -108,8 +112,6 @@ class _PillCardState extends State<PillCard> {
             ),
           ),
           const SizedBox(width: 16),
-
-          // ข้อมูลยา
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

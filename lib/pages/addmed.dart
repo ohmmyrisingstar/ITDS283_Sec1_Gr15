@@ -2,9 +2,13 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import '../helpers/database.dart';
+import '../models/medicine.dart';
 
 class AddMedicinePage extends StatefulWidget {
-  const AddMedicinePage({super.key});
+  final DateTime selectedDate;
+  const AddMedicinePage({super.key, required this.selectedDate});
 
   @override
   State<AddMedicinePage> createState() => _AddMedicinePageState();
@@ -80,6 +84,39 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
     );
   }
 
+  Future<void> _saveMedicine() async {
+    final name = _nameController.text;
+    final dose = 1;
+    final date = DateFormat('yyyy-MM-dd').format(widget.selectedDate);
+    final imagePath = _imageFile?.path;
+    final db = DatabaseHelper.instance;
+
+    if (_reminderOn) {
+      for (int i = 0; i < 6; i++) {
+        final newTime = _selectedTime.add(Duration(hours: _selectedInterval * i));
+        final med = Medicine(
+          name: name,
+          dose: dose,
+          time: DateFormat('hh:mm a').format(newTime),
+          date: date,
+          imagePath: imagePath,
+        );
+        await db.insertMedicine(med);
+      }
+    } else {
+      final med = Medicine(
+        name: name,
+        dose: dose,
+        time: DateFormat('hh:mm a').format(_selectedTime),
+        date: date,
+        imagePath: imagePath,
+      );
+      await db.insertMedicine(med);
+    }
+
+    if (mounted) Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -132,7 +169,6 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
             ),
 
             const SizedBox(height: 20),
-
             const Text("Name", style: TextStyle(color: Colors.white70)),
             const SizedBox(height: 8),
             TextField(
@@ -191,9 +227,7 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
             const SizedBox(height: 28),
             Center(
               child: ElevatedButton(
-                onPressed: () {
-                  // Add med action
-                },
+                onPressed: _saveMedicine,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFCFF5C3),
                   foregroundColor: Colors.black,

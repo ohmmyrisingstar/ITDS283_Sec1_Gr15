@@ -7,7 +7,7 @@ import 'searchpage.dart';
 import 'homepage.dart';
 import 'addmed.dart';
 import 'amount.dart';
-import '../components/navbar.dart'; // ✅ BottomNavBar component
+import '../components/navbar.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -32,6 +32,16 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  void _saveUsername() {
+    final username = _usernameController.text.trim();
+    if (username.isNotEmpty) {
+      // You could persist this using SharedPreferences or local db
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Username saved: $username')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,7 +53,6 @@ class _SettingsPageState extends State<SettingsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
               Stack(
                 children: [
                   const Center(
@@ -69,7 +78,6 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               const SizedBox(height: 20),
 
-              // Profile + Username
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -111,9 +119,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         Align(
                           alignment: Alignment.centerRight,
                           child: ElevatedButton(
-                            onPressed: () {
-                              print("New username: ${_usernameController.text}");
-                            },
+                            onPressed: _saveUsername,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFFCFF5C3),
                               foregroundColor: Colors.black,
@@ -133,8 +139,6 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
 
               const SizedBox(height: 32),
-
-              // Reminder Toggle
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -164,8 +168,6 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
 
               const SizedBox(height: 32),
-
-              // About Us + Leave App
               Row(
                 children: [
                   Expanded(
@@ -233,17 +235,20 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
         ),
       ),
-
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => const AddMedicinePage()));
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => AddMedicinePage(selectedDate: DateTime.now()),
+            ),
+          );
         },
         backgroundColor: Colors.white,
         child: const Icon(Icons.favorite, color: Colors.black, size: 32),
         shape: const CircleBorder(),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-
       bottomNavigationBar: BottomNavBar(
         currentIndex: 3,
         onTap: _onTabTapped,

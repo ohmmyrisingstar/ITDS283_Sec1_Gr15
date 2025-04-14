@@ -1,32 +1,62 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import '../components/navbar.dart'; // ✅ import component
+import '../components/navbar.dart';
 import 'addmed.dart';
 import 'homepage.dart';
 import 'searchpage.dart';
 import 'settings_page.dart';
 import 'amount.dart';
+import '../helpers/database.dart';
+import '../models/medicine.dart';
 
-class HistoryPage extends StatelessWidget {
-  final List<Map<String, dynamic>> historyItems = [
-    {
-      "pillName": "Pill Name #1",
-      "amount": "2",
-      "date": "2024-04-01",
-      "time": "08:00 AM"
-    },
-    {
-      "pillName": "Pill Name #2",
-      "amount": "1",
-      "date": "2024-04-03",
-      "time": "12:00 PM"
-    },
-    {
-      "pillName": "Pill Name #3",
-      "amount": "3",
-      "date": "2024-04-05",
-      "time": "06:00 PM"
-    },
-  ];
+class HistoryPage extends StatefulWidget {
+  const HistoryPage({super.key});
+
+  @override
+  State<HistoryPage> createState() => _HistoryPageState();
+}
+
+class _HistoryPageState extends State<HistoryPage> {
+  List<Medicine> _historyItems = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHistory();
+  }
+
+  Future<void> _loadHistory() async {
+    final data = await DatabaseHelper.instance.getAllMedicines();
+    setState(() {
+      _historyItems = data;
+    });
+  }
+
+  Future<void> _deleteItem(int id) async {
+    await DatabaseHelper.instance.deleteMedicine(id);
+    _loadHistory();
+  }
+
+  Future<void> _deleteAll() async {
+    final confirm = await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Delete All History"),
+        content: const Text("Are you sure you want to delete all items? This cannot be undone."),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Cancel")),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text("Delete All")),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      for (var item in _historyItems) {
+        await DatabaseHelper.instance.deleteMedicine(item.id!);
+      }
+      _loadHistory();
+    }
+  }
 
   void _onTabTapped(BuildContext context, int index) {
     if (index == 0) {
@@ -51,6 +81,11 @@ class HistoryPage extends StatelessWidget {
         title: const Text('History', style: TextStyle(fontSize: 24)),
         actions: [
           IconButton(
+            icon: const Icon(Icons.delete_forever),
+            tooltip: 'Delete All',
+            onPressed: _deleteAll,
+          ),
+          IconButton(
             icon: const Icon(Icons.close),
             onPressed: () => Navigator.pop(context),
           ),
@@ -70,9 +105,9 @@ class HistoryPage extends StatelessWidget {
             ),
             Expanded(
               child: ListView.builder(
-                itemCount: historyItems.length,
+                itemCount: _historyItems.length,
                 itemBuilder: (context, index) {
-                  final item = historyItems[index];
+                  final item = _historyItems[index];
                   return Container(
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(16),
@@ -87,18 +122,28 @@ class HistoryPage extends StatelessWidget {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const CircleAvatar(
-                            radius: 26,
-                            backgroundColor: Colors.black26,
-                            child: Icon(Icons.camera_alt, color: Colors.grey),
-                          ),
+                          item.imagePath != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(100),
+                                  child: Image.file(
+                                    File(item.imagePath!),
+                                    width: 52,
+                                    height: 52,
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : const CircleAvatar(
+                                  radius: 26,
+                                  backgroundColor: Colors.black26,
+                                  child: Icon(Icons.camera_alt, color: Colors.grey),
+                                ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  item['pillName'],
+                                  item.name,
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
@@ -109,7 +154,7 @@ class HistoryPage extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Amount: ${item['amount']}',
+                                  'Amount: ${item.dose}',
                                   style: const TextStyle(color: Colors.white70),
                                 ),
                                 const SizedBox(height: 8),
@@ -119,7 +164,7 @@ class HistoryPage extends StatelessWidget {
                                     const SizedBox(width: 4),
                                     Flexible(
                                       child: Text(
-                                        item['date'],
+                                        item.date,
                                         style: const TextStyle(color: Colors.white70),
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -129,7 +174,7 @@ class HistoryPage extends StatelessWidget {
                                     const SizedBox(width: 4),
                                     Flexible(
                                       child: Text(
-                                        item['time'],
+                                        item.time,
                                         style: const TextStyle(color: Colors.white70),
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -144,7 +189,7 @@ class HistoryPage extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () => _deleteItem(item.id!),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.redAccent,
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -170,13 +215,13 @@ class HistoryPage extends StatelessWidget {
         backgroundColor: Colors.white,
         child: const Icon(Icons.favorite, color: Colors.black, size: 32),
         onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => const AddMedicinePage()));
+          Navigator.push(context, MaterialPageRoute(builder: (_) => AddMedicinePage(selectedDate: DateTime.now())));
         },
         shape: const CircleBorder(),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomNavBar(
-        currentIndex: -1, // ✅ ไม่มีปุ่ม history ใน navbar
+        currentIndex: -1,
         onTap: (index) => _onTabTapped(context, index),
       ),
     );
