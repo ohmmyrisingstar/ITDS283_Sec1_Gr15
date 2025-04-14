@@ -85,36 +85,36 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
   }
 
   Future<void> _saveMedicine() async {
-    final name = _nameController.text;
-    final dose = 1;
-    final date = DateFormat('yyyy-MM-dd').format(widget.selectedDate);
-    final imagePath = _imageFile?.path;
+    final String name = _nameController.text.trim();
+    if (name.isEmpty) return;
+
     final db = DatabaseHelper.instance;
+    final imagePath = _imageFile?.path;
 
     if (_reminderOn) {
-      for (int i = 0; i < 6; i++) {
-        final newTime = _selectedTime.add(Duration(hours: _selectedInterval * i));
-        final med = Medicine(
+      for (int i = 1; i <= 4; i++) {
+        final DateTime remindTime = _selectedTime.add(Duration(hours: _selectedInterval * i));
+        await db.insertMedicine(Medicine(
           name: name,
-          dose: dose,
-          time: DateFormat('hh:mm a').format(newTime),
-          date: date,
+          dose: 1,
+          time: DateFormat.jm().format(remindTime),
+          date: DateFormat('yyyy-MM-dd').format(widget.selectedDate),
           imagePath: imagePath,
-        );
-        await db.insertMedicine(med);
+        ));
       }
     } else {
-      final med = Medicine(
+      final DateTime scheduledTime = _selectedTime.add(Duration(hours: _selectedInterval));
+      await db.insertMedicine(Medicine(
         name: name,
-        dose: dose,
-        time: DateFormat('hh:mm a').format(_selectedTime),
-        date: date,
+        dose: 1,
+        time: DateFormat.jm().format(scheduledTime),
+        date: DateFormat('yyyy-MM-dd').format(widget.selectedDate),
         imagePath: imagePath,
-      );
-      await db.insertMedicine(med);
+      ));
     }
 
-    if (mounted) Navigator.pop(context);
+    if (!mounted) return;
+    Navigator.pop(context);
   }
 
   @override
@@ -169,6 +169,7 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
             ),
 
             const SizedBox(height: 20),
+
             const Text("Name", style: TextStyle(color: Colors.white70)),
             const SizedBox(height: 8),
             TextField(
