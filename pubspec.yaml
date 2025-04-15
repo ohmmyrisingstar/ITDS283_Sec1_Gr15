@@ -11,13 +11,11 @@ dependencies:
   flutter:
     sdk: flutter
   intl: ^0.18.1
-
   image_picker: ^1.0.4
   camera: ^0.10.5+5
   path_provider: ^2.1.2
   path: ^1.9.0
-  sqflite: ^2.3.2+1   
-
+  sqflite: ^2.3.2+1
   cupertino_icons: ^1.0.8
 
 dev_dependencies:
@@ -27,3 +25,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/aspirin.png
+    - assets/images/paracetamol.png

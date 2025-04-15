@@ -5,7 +5,7 @@ import 'amount.dart';
 import 'settings_page.dart';
 import 'addmed.dart';
 import '../helpers/database.dart';
-import '../models/medicine.dart';
+import '../models/medicine_info.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -17,18 +17,25 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   final TextEditingController _searchController = TextEditingController();
   bool _hasSearched = false;
-  List<Medicine> _results = [];
+  List<MedicineInfo> _results = [];
 
   Future<void> _performSearch() async {
     final query = _searchController.text.trim().toLowerCase();
-    final allMeds = await DatabaseHelper.instance.getAllMedicines();
+    if (query.isEmpty) return;
 
-    setState(() {
-      _hasSearched = true;
-      _results = allMeds
-          .where((med) => med.name.toLowerCase().contains(query))
-          .toList();
-    });
+    try {
+      final results = await DatabaseHelper.instance.searchMedicineInfoByName(query);
+      setState(() {
+        _hasSearched = true;
+        _results = results;
+      });
+    } catch (e) {
+      print('❌ Search error: $e');
+      setState(() {
+        _hasSearched = true;
+        _results = [];
+      });
+    }
   }
 
   void _onTabTapped(int index) {
@@ -71,7 +78,6 @@ class _SearchPageState extends State<SearchPage> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // Search bar + button
             Container(
               decoration: BoxDecoration(
                 color: const Color(0xFF3B3D58),
@@ -132,19 +138,44 @@ class _SearchPageState extends State<SearchPage> {
                 child: ListView.builder(
                   itemCount: _results.length,
                   itemBuilder: (context, index) {
-                    final med = _results[index];
-                    return Card(
-                      color: Colors.grey[900],
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      child: ListTile(
-                        title: Text(
-                          med.name,
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          "Dose: ${med.dose} | Time: ${med.time} | Date: ${med.date}",
-                          style: const TextStyle(color: Colors.white70),
-                        ),
+                    final item = _results[index];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E2230),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Container(
+                                  width: 60,
+                                  height: 60,
+                                  color: Colors.black26,
+                                  child: const Icon(Icons.image, color: Colors.grey),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  item.name,
+                                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          if (item.form != null) Text("• รูปแบบยา: ${item.form}", style: const TextStyle(color: Colors.white70)),
+                          if (item.dosage != null) Text("• ปริมาณ: ${item.dosage}", style: const TextStyle(color: Colors.white70)),
+                          if (item.usage != null) Text("• วิธีใช้: ${item.usage}", style: const TextStyle(color: Colors.white70)),
+                          if (item.sideEffects != null) Text("• ผลข้างเคียง: ${item.sideEffects}", style: const TextStyle(color: Colors.white70)),
+                          if (item.warnings != null) Text("• ข้อควรระวัง: ${item.warnings}", style: const TextStyle(color: Colors.white70)),
+                        ],
                       ),
                     );
                   },
@@ -155,12 +186,7 @@ class _SearchPageState extends State<SearchPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => AddMedicinePage(selectedDate: DateTime.now()),
-            ),
-          );
+          Navigator.push(context, MaterialPageRoute(builder: (_) => AddMedicinePage(selectedDate: DateTime.now())));
         },
         backgroundColor: Colors.white,
         child: const Icon(Icons.favorite, color: Colors.black, size: 32),

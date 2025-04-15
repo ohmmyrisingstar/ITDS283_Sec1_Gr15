@@ -1,9 +1,4 @@
 import 'package:flutter/material.dart';
-import '../pages/addmed.dart';
-import '../pages/homepage.dart';
-import '../pages/searchpage.dart';
-import '../pages/settings_page.dart';
-import '../pages/amount.dart';
 
 class BottomNavBar extends StatelessWidget {
   final int currentIndex;
