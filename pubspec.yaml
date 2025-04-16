@@ -26,5 +26,10 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/aspirin.png
-    - assets/images/paracetamol.png
+    - assets/images/Amoxicillin.jpg
+    - assets/images/Aspirin.jpg
+    - assets/images/Cetirizine.jpg
+    - assets/images/Ibuprofen.jpg
+    - assets/images/Loratadine.jpg
+    - assets/images/Omeprazole.jpg
+    - assets/images/Paracetamol.jpg

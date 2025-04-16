@@ -66,7 +66,7 @@ class DatabaseHelper {
 
     await db.insert('medicine_info', {
       'name': 'Aspirin',
-      'imagePath': null,
+      'imagePath': 'assets/images/Aspirin.jpg',
       'form': 'Tablet',
       'dosage': '500 mg',
       'usage': 'รับประทาน 1 เม็ดหลังอาหาร',
@@ -76,7 +76,7 @@ class DatabaseHelper {
 
     await db.insert('medicine_info', {
       'name': 'Paracetamol',
-      'imagePath': null,
+      'imagePath': 'assets/images/Paracetamol.jpg',
       'form': 'Tablet',
       'dosage': '500 mg',
       'usage': 'รับประทานเมื่อมีไข้หรือปวดศีรษะ',
@@ -86,12 +86,52 @@ class DatabaseHelper {
     
     await db.insert('medicine_info', {
       'name': 'Ibuprofen',
-      'imagePath': null,
+      'imagePath': 'assets/images/Ibuprofen.jpg',
       'form': 'Tablet',
       'dosage': '400 mg',
       'usage': 'รับประทานเมื่อมีอาการปวดหรืออักเสบ',
       'sideEffects': 'อาจทำให้ปวดท้องหรือระคายเคือง',
       'warnings': 'หลีกเลี่ยงในผู้ป่วยที่มีปัญหาเกี่ยวกับไต'
+    });
+
+    await db.insert('medicine_info', {
+      'name': 'Omeprazole',
+      'imagePath': 'assets/images/Omeprazole.jpg',
+      'form': 'Capsule',
+      'dosage': '20 mg',
+      'usage': 'ใช้ลดกรดในกระเพาะอาหาร รักษาโรคกระเพาะ',
+      'sideEffects': 'อาจทำให้ท้องอืด คลื่นไส้ หรือปวดหัว',
+      'warnings': 'ควรรับประทานก่อนอาหารเช้า'
+    });
+
+    await db.insert('medicine_info', {
+      'name': 'Amoxicillin',
+      'imagePath': 'assets/images/Amoxicillin.jpg',
+      'form': 'Capsule',
+      'dosage': '500 mg',
+      'usage': 'รับประทานเพื่อลดการติดเชื้อแบคทีเรีย',
+      'sideEffects': 'อาจทำให้คลื่นไส้ ท้องเสีย หรือผื่นแพ้',
+      'warnings': 'ห้ามใช้หากแพ้ยาเพนิซิลลิน'
+    });
+
+    await db.insert('medicine_info', {
+      'name': 'Loratadine',
+      'imagePath': 'assets/images/Loratadine.jpg',
+      'form': 'Tablet',
+      'dosage': '10 mg',
+      'usage': 'บรรเทาอาการแพ้ เช่น น้ำมูกไหล หรือคันตา',
+      'sideEffects': 'อาจทำให้ง่วงนอนเล็กน้อยในบางราย',
+      'warnings': 'หลีกเลี่ยงการขับขี่ยานพาหนะหากรู้สึกง่วง'
+    });
+
+    await db.insert('medicine_info', {
+      'name': 'Cetirizine',
+      'imagePath': 'assets/images/Cetirizine.jpg',
+      'form': 'Tablet',
+      'dosage': '10 mg',
+      'usage': 'ใช้รักษาอาการแพ้ เช่น จาม คัดจมูก',
+      'sideEffects': 'อาจมีอาการง่วงนอนเล็กน้อย',
+      'warnings': 'ควรระวังหากต้องขับขี่ยานพาหนะ'
     });
   }
 
