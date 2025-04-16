@@ -176,6 +176,22 @@ class DatabaseHelper {
     return await db.delete('medicines');
   }
 
+  //ฟังก์ชันดึงยาเฉพาะรายการ
+  Future<Medicine?> getMedicineByName(String name) async {
+    final db = await instance.database;
+    final result = await db.query(
+      'medicines',
+      where: 'name = ?',
+      whereArgs: [name],
+    );
+
+    if (result.isNotEmpty) {
+      return Medicine.fromMap(result.first);
+    } else {
+      return null;
+    }
+  }
+
   Future<List<MedicineInfo>> searchMedicineInfoByName(String keyword) async {
     final db = await instance.database;
     try {
@@ -197,3 +213,5 @@ class DatabaseHelper {
     db.close();
   }
 }
+
+  
