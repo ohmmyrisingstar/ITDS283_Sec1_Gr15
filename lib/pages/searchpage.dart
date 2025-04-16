@@ -5,9 +5,8 @@ import 'amount.dart';
 import 'settings_page.dart';
 import 'addmed.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-
-
+import '../helpers/database.dart';
+import '../models/medicine.dart'; // ตรวจสอบว่ามี MedicineInfo อยู่ในไฟล์นี้
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -19,32 +18,32 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   final TextEditingController _searchController = TextEditingController();
   bool _hasSearched = false;
-  List<MedicineInfo> _results = [];
-
+  List<Medicine> _results = [];
 
   String? result;
   String? imageUrl;
 
-
+  void _performSearch() async {
+    final query = _searchController.text.trim();
 
     if (query.isEmpty) return;
 
     setState(() {
       _hasSearched = true;
       result = "กำลังค้นหา...";
+      _results.clear();
     });
 
     try {
-      final snapshot =
-          await FirebaseFirestore.instance
-              .collection('medicines')
-              .where('name', isEqualTo: query)
-              .get();
+      final snapshot = await FirebaseFirestore.instance
+          .collection('medicines')
+          .where('name', isEqualTo: query)
+          .get();
 
       if (snapshot.docs.isNotEmpty) {
         final doc = snapshot.docs.first.data();
 
-        imageUrl = doc['image_url']; // ✅ เพิ่มบรรทัดนี้
+        imageUrl = doc['image_url'];
         result = '''
 📦 ${_capitalize(doc['name'])}
 
@@ -53,7 +52,7 @@ class _SearchPageState extends State<SearchPage> {
 • วิธีใช้: ${doc['usage']}  
 • ผลข้างเคียง: ${doc['side_effects']}  
 • ข้อควรระวัง: ${doc['caution']}
-    ''';
+        ''';
       } else {
         imageUrl = null;
         result = "ไม่พบข้อมูลยาที่ค้นหา";
@@ -64,24 +63,23 @@ class _SearchPageState extends State<SearchPage> {
     }
 
     setState(() {});
-
   }
-
-  String _capitalize(String text) {
-    if (text.isEmpty) return text;
-    return text[0].toUpperCase() + text.substring(1);
-  }
-
 
   void _onTabTapped(int index) {
     if (index == 0) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomePage()));
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+      );
     } else if (index == 1) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => AmountPage()));
     } else if (index == 2) {
       // current page
     } else if (index == 3) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage()));
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SettingsPage()),
+      );
     }
   }
 
@@ -106,7 +104,7 @@ class _SearchPageState extends State<SearchPage> {
           IconButton(
             icon: const Icon(Icons.close, color: Colors.white),
             onPressed: () => Navigator.pop(context),
-          )
+          ),
         ],
       ),
       body: Padding(
@@ -140,7 +138,10 @@ class _SearchPageState extends State<SearchPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueAccent,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -148,10 +149,7 @@ class _SearchPageState extends State<SearchPage> {
                     ),
                     child: const Text(
                       "Search",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                     ),
                   ),
                 ],
@@ -170,7 +168,6 @@ class _SearchPageState extends State<SearchPage> {
               )
             else
               Expanded(
-
                 child: Container(
                   width: double.infinity,
                   child: Card(
@@ -194,13 +191,10 @@ class _SearchPageState extends State<SearchPage> {
                                   width: double.infinity,
                                   fit: BoxFit.cover,
                                   errorBuilder:
-                                      (context, error, stackTrace) =>
-                                          const Text(
-                                            'โหลดรูปไม่ได้',
-                                            style: TextStyle(
-                                              color: Colors.white54,
-                                            ),
-                                          ),
+                                      (context, error, stackTrace) => const Text(
+                                        'โหลดรูปไม่ได้',
+                                        style: TextStyle(color: Colors.white54),
+                                      ),
                                 ),
                               ),
                             const SizedBox(height: 16),
@@ -217,25 +211,32 @@ class _SearchPageState extends State<SearchPage> {
                       ),
                     ),
                   ),
-
                 ),
-              )
+              ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => AddMedicinePage(selectedDate: DateTime.now())));
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => AddMedicinePage(selectedDate: DateTime.now()),
+            ),
+          );
         },
         backgroundColor: Colors.white,
         child: const Icon(Icons.favorite, color: Colors.black, size: 32),
         shape: const CircleBorder(),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: 2,
-        onTap: _onTabTapped,
-      ),
+      bottomNavigationBar: BottomNavBar(currentIndex: 2, onTap: _onTabTapped),
     );
   }
+
+  String _capitalize(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1);
+  }
+}
 

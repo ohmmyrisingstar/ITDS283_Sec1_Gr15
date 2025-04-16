@@ -5,6 +5,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:path/path.dart' as path;
+import 'package:intl/intl.dart';
+import '../helpers/database.dart';
+import '../models/medicine.dart';
+
 
 
 class AddMedicinePage extends StatefulWidget {
@@ -258,8 +262,8 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
                       'medicine_images/$fileName.jpg',
                     );
 
-                    final uploadTask = await ref.putFile(_imageFile!);
-                    final snapshot = await uploadTask;
+                    final snapshot = await ref.putFile(_imageFile!);
+
                     if (snapshot.state != TaskState.success) {
                       throw Exception("Image upload failed");
                     }
