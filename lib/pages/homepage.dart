@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // 🔸 เพิ่ม
 import 'addmed.dart';
 import 'settings_page.dart';
 import 'searchpage.dart';
@@ -18,7 +19,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-  String profileImage = "https://via.placeholder.com/150";
+  String profileImage = "https://via.placeholder.com/150"; // 🔸 เริ่มต้น
+  String username = "User"; // 🔸 เริ่มต้น
   DateTime selectedDate = DateTime.now();
   List<Medicine> _medicines = [];
 
@@ -29,7 +31,8 @@ class _HomePageState extends State<HomePage> {
     } else if (index == 2) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchPage()));
     } else if (index == 3) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage()));
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage()))
+        .then((_) => _loadUserProfile()); // 🔸 โหลดใหม่เมื่อกลับจาก Settings
     }
   }
 
@@ -49,6 +52,14 @@ class _HomePageState extends State<HomePage> {
       });
       await _loadMedicines();
     }
+  }
+
+  Future<void> _loadUserProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      username = prefs.getString('username') ?? 'User';
+      profileImage = prefs.getString('profileImage') ?? 'https://via.placeholder.com/150';
+    });
   }
 
   String _monthYearString(DateTime date) {
@@ -76,6 +87,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadMedicines();
+    _loadUserProfile(); // 🔸 โหลดโปรไฟล์เมื่อเปิดหน้า
   }
 
   @override
@@ -98,9 +110,9 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text("Hi, User", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                    Text("Welcome to PillMate", style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic, color: Colors.grey)),
+                  children: [
+                    Text("Hi, $username", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                    const Text("Welcome to PillMate", style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic, color: Colors.grey)),
                   ],
                 ),
                 const Spacer(),
