@@ -5,16 +5,11 @@ import 'homepage.dart';
 import 'searchpage.dart';
 import 'settings_page.dart';
 
-class AmountPage extends StatefulWidget {
-  @override
-  State<AmountPage> createState() => _AmountPageState();
-}
-
-class _AmountPageState extends State<AmountPage> {
-  List<Map<String, dynamic>> pills = [
+class AmountPage extends StatelessWidget {
+  final List<Map<String, dynamic>> pills = [
     {"name": "Paracetamol", "amount": 1},
     {"name": "Vitamins", "amount": 2},
-    {"name": "Ibuprofen", "amount": 3},
+    {"name": "Vitamins", "amount": 3},
   ];
 
   void _onTabTapped(BuildContext context, int index) {
@@ -25,15 +20,6 @@ class _AmountPageState extends State<AmountPage> {
     } else if (index == 3) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage()));
     }
-  }
-
-  void updatePillAmount(int index, int newAmount) {
-    setState(() {
-      pills[index]['amount'] = newAmount;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${pills[index]['name']} updated to $newAmount')),
-    );
   }
 
   @override
@@ -59,7 +45,6 @@ class _AmountPageState extends State<AmountPage> {
           return PillCard(
             pillName: pills[index]['name'],
             initialAmount: pills[index]['amount'],
-            onApply: (newAmount) => updatePillAmount(index, newAmount),
           );
         },
       ),
@@ -88,12 +73,10 @@ class _AmountPageState extends State<AmountPage> {
 class PillCard extends StatefulWidget {
   final String pillName;
   final int initialAmount;
-  final Function(int) onApply;
 
   const PillCard({
     required this.pillName,
     required this.initialAmount,
-    required this.onApply,
     Key? key,
   }) : super(key: key);
 
@@ -180,7 +163,7 @@ class _PillCardState extends State<PillCard> {
                   alignment: Alignment.centerRight,
                   child: ElevatedButton(
                     onPressed: () {
-                      widget.onApply(selectedAmount);
+                      // TODO: Save new amount
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFD0F0C0),

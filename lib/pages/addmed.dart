@@ -2,14 +2,9 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:path/path.dart' as path;
 import 'package:intl/intl.dart';
 import '../helpers/database.dart';
 import '../models/medicine.dart';
-
-
 
 class AddMedicinePage extends StatefulWidget {
   final DateTime selectedDate;
@@ -27,8 +22,6 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
   int _selectedInterval = 2;
 
   final List<int> intervals = [1, 2, 4, 6];
-
-  bool _isLoading = false;
 
   void _showImagePickerDialog() {
     showDialog(
@@ -126,13 +119,6 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: Color(0xFF2E3047),
-        body: Center(child: CircularProgressIndicator(color: Colors.white)
-        ),
-      );
-    }
     return Scaffold(
       backgroundColor: const Color(0xFF2E3047),
       appBar: AppBar(
@@ -242,60 +228,7 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
             const SizedBox(height: 28),
             Center(
               child: ElevatedButton(
-                onPressed: () async {
-                  final name = _nameController.text.trim();
-                  if (name.isEmpty || _imageFile == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("กรุณาใส่ชื่อยาและเลือกรูปภาพ"),
-                      ),
-                    );
-                    return;
-                  }
-
-                  setState(() => _isLoading = true); // ✅ เริ่มโหลด
-
-                  try {
-                    final fileName =
-                        DateTime.now().millisecondsSinceEpoch.toString();
-                    final ref = FirebaseStorage.instance.ref().child(
-                      'medicine_images/$fileName.jpg',
-                    );
-
-                    final snapshot = await ref.putFile(_imageFile!);
-
-                    if (snapshot.state != TaskState.success) {
-                      throw Exception("Image upload failed");
-                    }
-
-                    final imageUrl = await ref.getDownloadURL();
-
-                    await FirebaseFirestore.instance.collection('medicines').add({
-                      'name': name.toLowerCase(),
-                      'form': 'Tablet',
-                      'dosage': '500 mg',
-                      'usage': 'รับประทาน 1 เม็ดหลังอาหาร',
-                      'side_effects': 'อาจทำให้ปวดท้องหรือระคายเคือง',
-                      'precautions':
-                          'หลีกเลี่ยงในผู้ป่วยที่มีปัญหาเกี่ยวกับระบบทางเดินอาหาร',
-                      'image_url': imageUrl,
-                      'start_time': Timestamp.fromDate(_selectedTime,), // ✅ เพิ่มเวลาเริ่มเตือน
-                    });
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("เพิ่มยาเรียบร้อยแล้ว")),
-                    );
-                    Navigator.pop(context);
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("เกิดข้อผิดพลาด: $e")),
-                    );
-                  } finally {
-                    setState(
-                      () => _isLoading = false,
-                    ); // ✅ หยุดโหลด ไม่ว่าจะสำเร็จหรือ error
-                  }
-                },
+                onPressed: _saveMedicine,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFCFF5C3),
                   foregroundColor: Colors.black,

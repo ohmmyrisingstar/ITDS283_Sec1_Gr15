@@ -4,9 +4,8 @@ import 'homepage.dart';
 import 'amount.dart';
 import 'settings_page.dart';
 import 'addmed.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../helpers/database.dart';
-import '../models/medicine.dart'; // ตรวจสอบว่ามี MedicineInfo อยู่ในไฟล์นี้
+import '../models/medicine_info.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -18,68 +17,36 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   final TextEditingController _searchController = TextEditingController();
   bool _hasSearched = false;
-  List<Medicine> _results = [];
+  List<MedicineInfo> _results = [];
 
-  String? result;
-  String? imageUrl;
-
-  void _performSearch() async {
-    final query = _searchController.text.trim();
-
+  Future<void> _performSearch() async {
+    final query = _searchController.text.trim().toLowerCase();
     if (query.isEmpty) return;
 
-    setState(() {
-      _hasSearched = true;
-      result = "กำลังค้นหา...";
-      _results.clear();
-    });
-
     try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('medicines')
-          .where('name', isEqualTo: query)
-          .get();
-
-      if (snapshot.docs.isNotEmpty) {
-        final doc = snapshot.docs.first.data();
-
-        imageUrl = doc['image_url'];
-        result = '''
-📦 ${_capitalize(doc['name'])}
-
-• รูปแบบยา: ${doc['form']}  
-• ปริมาณ: ${doc['dosage']}  
-• วิธีใช้: ${doc['usage']}  
-• ผลข้างเคียง: ${doc['side_effects']}  
-• ข้อควรระวัง: ${doc['caution']}
-        ''';
-      } else {
-        imageUrl = null;
-        result = "ไม่พบข้อมูลยาที่ค้นหา";
-      }
+      final results = await DatabaseHelper.instance.searchMedicineInfoByName(query);
+      setState(() {
+        _hasSearched = true;
+        _results = results;
+      });
     } catch (e) {
-      imageUrl = null;
-      result = "เกิดข้อผิดพลาดในการค้นหา: $e";
+      print('❌ Search error: $e');
+      setState(() {
+        _hasSearched = true;
+        _results = [];
+      });
     }
-
-    setState(() {});
   }
 
   void _onTabTapped(int index) {
     if (index == 0) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomePage()));
     } else if (index == 1) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => AmountPage()));
     } else if (index == 2) {
       // current page
     } else if (index == 3) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const SettingsPage()),
-      );
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage()));
     }
   }
 
@@ -104,7 +71,7 @@ class _SearchPageState extends State<SearchPage> {
           IconButton(
             icon: const Icon(Icons.close, color: Colors.white),
             onPressed: () => Navigator.pop(context),
-          ),
+          )
         ],
       ),
       body: Padding(
@@ -138,10 +105,7 @@ class _SearchPageState extends State<SearchPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueAccent,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 10,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -149,7 +113,10 @@ class _SearchPageState extends State<SearchPage> {
                     ),
                     child: const Text(
                       "Search",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                 ],
@@ -168,49 +135,50 @@ class _SearchPageState extends State<SearchPage> {
               )
             else
               Expanded(
-                child: Container(
-                  width: double.infinity,
-                  child: Card(
-                    color: const Color(0xFF1C1E32),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 4,
-                    child: Padding(
+                child: ListView.builder(
+                  itemCount: _results.length,
+                  itemBuilder: (context, index) {
+                    final item = _results[index];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16),
                       padding: const EdgeInsets.all(16),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (imageUrl != null)
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E2230),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(12),
-                                child: Image.network(
-                                  imageUrl!,
-                                  height: 160,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                  errorBuilder:
-                                      (context, error, stackTrace) => const Text(
-                                        'โหลดรูปไม่ได้',
-                                        style: TextStyle(color: Colors.white54),
-                                      ),
+                                child: Container(
+                                  width: 60,
+                                  height: 60,
+                                  color: Colors.black26,
+                                  child: const Icon(Icons.image, color: Colors.grey),
                                 ),
                               ),
-                            const SizedBox(height: 16),
-                            Text(
-                              result ?? '',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                height: 1.5,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  item.name,
+                                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          if (item.form != null) Text("• รูปแบบยา: ${item.form}", style: const TextStyle(color: Colors.white70)),
+                          if (item.dosage != null) Text("• ปริมาณ: ${item.dosage}", style: const TextStyle(color: Colors.white70)),
+                          if (item.usage != null) Text("• วิธีใช้: ${item.usage}", style: const TextStyle(color: Colors.white70)),
+                          if (item.sideEffects != null) Text("• ผลข้างเคียง: ${item.sideEffects}", style: const TextStyle(color: Colors.white70)),
+                          if (item.warnings != null) Text("• ข้อควรระวัง: ${item.warnings}", style: const TextStyle(color: Colors.white70)),
+                        ],
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
               ),
           ],
@@ -218,25 +186,17 @@ class _SearchPageState extends State<SearchPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => AddMedicinePage(selectedDate: DateTime.now()),
-            ),
-          );
+          Navigator.push(context, MaterialPageRoute(builder: (_) => AddMedicinePage(selectedDate: DateTime.now())));
         },
         backgroundColor: Colors.white,
         child: const Icon(Icons.favorite, color: Colors.black, size: 32),
         shape: const CircleBorder(),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomNavBar(currentIndex: 2, onTap: _onTabTapped),
+      bottomNavigationBar: BottomNavBar(
+        currentIndex: 2,
+        onTap: _onTabTapped,
+      ),
     );
   }
-
-  String _capitalize(String text) {
-    if (text.isEmpty) return text;
-    return text[0].toUpperCase() + text.substring(1);
-  }
 }
-

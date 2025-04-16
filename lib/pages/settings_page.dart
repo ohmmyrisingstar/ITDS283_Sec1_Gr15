@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
-import 'package:shared_preferences/shared_preferences.dart';
+
 import 'aboutus.dart';
 import 'searchpage.dart';
 import 'homepage.dart';
@@ -32,17 +32,15 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
- void _saveUsername() async {
-  final username = _usernameController.text.trim();
-  if (username.isNotEmpty) {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('username', username);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Username saved: $username')),
-    );
+  void _saveUsername() {
+    final username = _usernameController.text.trim();
+    if (username.isNotEmpty) {
+      // You could persist this using SharedPreferences or local db
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Username saved: $username')),
+      );
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {

@@ -71,7 +71,7 @@ class DatabaseHelper {
       'dosage': '500 mg',
       'usage': 'รับประทาน 1 เม็ดหลังอาหาร',
       'sideEffects': 'อาจทำให้ปวดท้องหรือระคายเคือง',
-      'warnings': 'หลีกเลี่ยงในผู้ป่วยที่มีปัญหาเกี่ยวกับกระเพาะอาหาร',
+      'warnings': 'หลีกเลี่ยงในผู้ป่วยที่มีปัญหาเกี่ยวกับกระเพาะอาหาร'
     });
 
     await db.insert('medicine_info', {
@@ -81,9 +81,9 @@ class DatabaseHelper {
       'dosage': '500 mg',
       'usage': 'รับประทานเมื่อมีไข้หรือปวดศีรษะ',
       'sideEffects': 'อาจมีผลต่อตับหากใช้เกินขนาด',
-      'warnings': 'ไม่ควรใช้เกิน 4 กรัมต่อวัน',
+      'warnings': 'ไม่ควรใช้เกิน 4 กรัมต่อวัน'
     });
-
+    
     await db.insert('medicine_info', {
       'name': 'Ibuprofen',
       'imagePath': null,
@@ -91,47 +91,7 @@ class DatabaseHelper {
       'dosage': '400 mg',
       'usage': 'รับประทานเมื่อมีอาการปวดหรืออักเสบ',
       'sideEffects': 'อาจทำให้ปวดท้องหรือระคายเคือง',
-      'warnings': 'หลีกเลี่ยงในผู้ป่วยที่มีปัญหาเกี่ยวกับไต',
-    });
-
-    await db.insert('medicine_info', {
-      'name': 'Amoxicillin',
-      'imagePath': null,
-      'form': 'Capsule',
-      'dosage': '500 mg',
-      'usage': 'รับประทานเพื่อลดการติดเชื้อแบคทีเรีย',
-      'sideEffects': 'อาจทำให้คลื่นไส้ ท้องเสีย หรือผื่นแพ้',
-      'warnings': 'ห้ามใช้หากแพ้ยาเพนิซิลลิน',
-    });
-
-    await db.insert('medicine_info', {
-      'name': 'Loratadine',
-      'imagePath': null,
-      'form': 'Tablet',
-      'dosage': '10 mg',
-      'usage': 'บรรเทาอาการแพ้ เช่น น้ำมูกไหล หรือคันตา',
-      'sideEffects': 'อาจทำให้ง่วงนอนเล็กน้อยในบางราย',
-      'warnings': 'หลีกเลี่ยงการขับขี่ยานพาหนะหากรู้สึกง่วง',
-    });
-
-    await db.insert('medicine_info', {
-      'name': 'Cetirizine',
-      'imagePath': null,
-      'form': 'Tablet',
-      'dosage': '10 mg',
-      'usage': 'ใช้รักษาอาการแพ้ เช่น จาม คัดจมูก',
-      'sideEffects': 'อาจมีอาการง่วงนอนเล็กน้อย',
-      'warnings': 'ควรระวังหากต้องขับขี่ยานพาหนะ',
-    });
-
-    await db.insert('medicine_info', {
-      'name': 'Omeprazole',
-      'imagePath': null,
-      'form': 'Capsule',
-      'dosage': '20 mg',
-      'usage': 'ใช้ลดกรดในกระเพาะอาหาร รักษาโรคกระเพาะ',
-      'sideEffects': 'อาจทำให้ท้องอืด คลื่นไส้ หรือปวดหัว',
-      'warnings': 'ควรรับประทานก่อนอาหารเช้า',
+      'warnings': 'หลีกเลี่ยงในผู้ป่วยที่มีปัญหาเกี่ยวกับไต'
     });
   }
 
