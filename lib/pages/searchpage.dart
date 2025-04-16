@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import '../components/navbar.dart'; // ✅ import bottom nav
+import '../components/navbar.dart';
 import 'homepage.dart';
 import 'amount.dart';
 import 'settings_page.dart';
 import 'addmed.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+
 
 
 class SearchPage extends StatefulWidget {
@@ -17,12 +19,13 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   final TextEditingController _searchController = TextEditingController();
   bool _hasSearched = false;
+  List<MedicineInfo> _results = [];
+
 
   String? result;
   String? imageUrl;
 
-  Future<void> _performSearch() async {
-    final query = _searchController.text.trim().toLowerCase();
+
 
     if (query.isEmpty) return;
 
@@ -61,6 +64,7 @@ class _SearchPageState extends State<SearchPage> {
     }
 
     setState(() {});
+
   }
 
   String _capitalize(String text) {
@@ -109,7 +113,6 @@ class _SearchPageState extends State<SearchPage> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // Search bar + button
             Container(
               decoration: BoxDecoration(
                 color: const Color(0xFF3B3D58),
@@ -154,16 +157,20 @@ class _SearchPageState extends State<SearchPage> {
                 ],
               ),
             ),
-
             const SizedBox(height: 20),
-
             if (!_hasSearched)
               const Text(
                 "Search results will appear here",
                 style: TextStyle(color: Colors.grey),
               )
+            else if (_results.isEmpty)
+              const Text(
+                "ไม่พบข้อมูลยาที่ค้นหา",
+                style: TextStyle(color: Colors.white70),
+              )
             else
               Expanded(
+
                 child: Container(
                   width: double.infinity,
                   child: Card(
@@ -210,26 +217,25 @@ class _SearchPageState extends State<SearchPage> {
                       ),
                     ),
                   ),
+
                 ),
               )
           ],
         ),
       ),
-
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => const AddMedicinePage()));
+          Navigator.push(context, MaterialPageRoute(builder: (_) => AddMedicinePage(selectedDate: DateTime.now())));
         },
         backgroundColor: Colors.white,
         child: const Icon(Icons.favorite, color: Colors.black, size: 32),
         shape: const CircleBorder(),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-
       bottomNavigationBar: BottomNavBar(
         currentIndex: 2,
         onTap: _onTabTapped,
       ),
     );
   }
-}
+

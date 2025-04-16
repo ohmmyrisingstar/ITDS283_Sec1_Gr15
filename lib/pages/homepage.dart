@@ -6,6 +6,8 @@ import 'searchpage.dart';
 import 'amount.dart';
 import 'history.dart';
 import '../components/navbar.dart';
+import '../helpers/database.dart';
+import '../models/medicine.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,6 +20,7 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   String profileImage = "https://via.placeholder.com/150";
   DateTime selectedDate = DateTime.now();
+  List<Medicine> _medicines = [];
 
   void _onItemTapped(int index) {
     if (index == 0) return;
@@ -44,6 +47,7 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         selectedDate = picked;
       });
+      await _loadMedicines();
     }
   }
 
@@ -61,6 +65,19 @@ class _HomePageState extends State<HomePage> {
     return List.generate(7, (i) => startOfWeek.add(Duration(days: i)));
   }
 
+  Future<void> _loadMedicines() async {
+    final meds = await DatabaseHelper.instance.getMedicinesByDate(DateFormat('yyyy-MM-dd').format(selectedDate));
+    setState(() {
+      _medicines = meds;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMedicines();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,8 +86,6 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 40),
-
-          // Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
             child: Row(
@@ -91,15 +106,14 @@ class _HomePageState extends State<HomePage> {
                 const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.receipt_long, color: Colors.white),
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryPage()));
+                  onPressed: () async {
+                    await Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoryPage()));
+                    _loadMedicines();
                   },
                 ),
               ],
             ),
           ),
-
-          // Calendar Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: GestureDetector(
@@ -116,10 +130,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-
           const SizedBox(height: 16),
-
-          // Weekday + Date
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
@@ -140,6 +151,7 @@ class _HomePageState extends State<HomePage> {
                         setState(() {
                           selectedDate = date;
                         });
+                        _loadMedicines();
                       },
                       child: Container(
                         padding: const EdgeInsets.all(8),
@@ -161,10 +173,7 @@ class _HomePageState extends State<HomePage> {
               }).toList(),
             ),
           ),
-
           const SizedBox(height: 20),
-
-          // Pills Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Row(
@@ -179,6 +188,7 @@ class _HomePageState extends State<HomePage> {
                         setState(() {
                           selectedDate = selectedDate.subtract(const Duration(days: 1));
                         });
+                        _loadMedicines();
                       },
                     ),
                     const SizedBox(width: 8),
@@ -188,6 +198,7 @@ class _HomePageState extends State<HomePage> {
                         setState(() {
                           selectedDate = selectedDate.add(const Duration(days: 1));
                         });
+                        _loadMedicines();
                       },
                     ),
                   ],
@@ -195,32 +206,30 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-
-          // Pills List
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: const [
-                PillCard(name: "Vitamins", dose: "2 capsules", time: "in 0 hours", initialTaken: true),
-                PillCard(name: "Paracetamol", dose: "2 pills", time: "in 2 hours", initialTaken: false),
-              ],
+              children: _medicines.map((med) {
+                return PillCard(name: med.name, dose: "${med.dose} pills", time: med.time, initialTaken: false);
+              }).toList(),
             ),
           ),
         ],
       ),
-
-      // Floating Action Button
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => const AddMedicinePage()));
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => AddMedicinePage(selectedDate: selectedDate),
+            ),
+          ).then((_) => _loadMedicines());
         },
         backgroundColor: Colors.white,
         child: const Icon(Icons.favorite, color: Colors.black, size: 32),
         shape: const CircleBorder(),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-
-      // ✅ Bottom NavBar as Component
       bottomNavigationBar: BottomNavBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,

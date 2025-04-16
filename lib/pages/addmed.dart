@@ -8,7 +8,8 @@ import 'package:path/path.dart' as path;
 
 
 class AddMedicinePage extends StatefulWidget {
-  const AddMedicinePage({super.key});
+  final DateTime selectedDate;
+  const AddMedicinePage({super.key, required this.selectedDate});
 
   @override
   State<AddMedicinePage> createState() => _AddMedicinePageState();
@@ -84,6 +85,39 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
         ),
       ),
     );
+  }
+
+  Future<void> _saveMedicine() async {
+    final String name = _nameController.text.trim();
+    if (name.isEmpty) return;
+
+    final db = DatabaseHelper.instance;
+    final imagePath = _imageFile?.path;
+
+    if (_reminderOn) {
+      for (int i = 1; i <= 4; i++) {
+        final DateTime remindTime = _selectedTime.add(Duration(hours: _selectedInterval * i));
+        await db.insertMedicine(Medicine(
+          name: name,
+          dose: 1,
+          time: DateFormat.jm().format(remindTime),
+          date: DateFormat('yyyy-MM-dd').format(widget.selectedDate),
+          imagePath: imagePath,
+        ));
+      }
+    } else {
+      final DateTime scheduledTime = _selectedTime.add(Duration(hours: _selectedInterval));
+      await db.insertMedicine(Medicine(
+        name: name,
+        dose: 1,
+        time: DateFormat.jm().format(scheduledTime),
+        date: DateFormat('yyyy-MM-dd').format(widget.selectedDate),
+        imagePath: imagePath,
+      ));
+    }
+
+    if (!mounted) return;
+    Navigator.pop(context);
   }
 
   @override
