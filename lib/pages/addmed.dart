@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../helpers/database.dart';
 import '../models/medicine.dart';
 import '../helpers/notification.dart';
@@ -62,10 +63,14 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
     final db = DatabaseHelper.instance;
     final imagePath = _imageFile?.path;
 
+    final DateTime now = DateTime.now();
     final DateTime remindTime = DateTime(
       widget.selectedDate.year,
       widget.selectedDate.month,
       widget.selectedDate.day,
+      now.hour,
+      now.minute,
+      now.second,
     ).add(_remindIn);
 
     await db.insertMedicine(Medicine(
@@ -76,12 +81,17 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
       imagePath: imagePath,
     ));
 
-    await NotificationService.scheduleNotification(
-      id: remindTime.millisecondsSinceEpoch ~/ 1000,
-      title: "Don't forget to take your pills!",
-      body: "It's time to take your $name brotherrr 💊⏰",
-      scheduledTime: remindTime,
-    );
+    final prefs = await SharedPreferences.getInstance();
+    final notificationsEnabled = prefs.getBool('reminder_on') ?? true;
+
+    if (notificationsEnabled) {
+      await NotificationService.scheduleNotification(
+        id: remindTime.millisecondsSinceEpoch ~/ 1000,
+        title: "Don't forget to take your pills!",
+        body: "It's time to take your $name brotherrr 💊⏰",
+        scheduledTime: remindTime,
+      );
+    }
 
     if (!mounted) return;
     Navigator.pop(context);

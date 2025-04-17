@@ -37,6 +37,12 @@ class NotificationService {
     required String body,
     required DateTime scheduledTime,
   }) async {
+    // ✅ Check that the time is in the future
+    if (scheduledTime.isBefore(DateTime.now())) {
+      print("❌ Cannot schedule a notification in the past: $scheduledTime");
+      return;
+    }
+
     await _notificationsPlugin.zonedSchedule(
       id,
       title,
@@ -60,7 +66,7 @@ class NotificationService {
     );
   }
 
-  // ✅ ใช้ปิดการแจ้งเตือนทั้งหมดเมื่อ user ปิด toggle
+  // ✅ Clear all scheduled notifications
   static Future<void> cancelAll() async {
     await _notificationsPlugin.cancelAll();
   }

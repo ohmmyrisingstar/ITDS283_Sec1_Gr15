@@ -111,111 +111,118 @@ class _HistoryPageState extends State<HistoryPage> {
               ),
             ),
             Expanded(
-              child: ListView.builder(
-                itemCount: _historyItems.length,
-                itemBuilder: (context, index) {
-                  final item = _historyItems[index];
-                  final imageWidget = (item.imagePath != null && File(item.imagePath!).existsSync())
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(100),
-                          child: Image.file(
-                            File(item.imagePath!),
-                            width: 52,
-                            height: 52,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                      : const CircleAvatar(
-                          radius: 26,
-                          backgroundColor: Colors.black26,
-                          child: Icon(Icons.camera_alt, color: Colors.grey),
-                        );
+              child: _historyItems.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'No medicine history recorded.',
+                        style: TextStyle(color: Colors.white60, fontSize: 16),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: _historyItems.length,
+                      itemBuilder: (context, index) {
+                        final item = _historyItems[index];
+                        final imageWidget = (item.imagePath != null && File(item.imagePath!).existsSync())
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(100),
+                                child: Image.file(
+                                  File(item.imagePath!),
+                                  width: 52,
+                                  height: 52,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : const CircleAvatar(
+                                radius: 26,
+                                backgroundColor: Colors.black26,
+                                child: Icon(Icons.camera_alt, color: Colors.grey),
+                              );
 
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E2230),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 2))
-                      ],
-                    ),
-                    child: IntrinsicHeight(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          imageWidget,
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E2230),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 2))
+                            ],
+                          ),
+                          child: IntrinsicHeight(
+                            child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  item.name,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
+                                imageWidget,
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        item.name,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Amount: ${item.dose}',
+                                        style: const TextStyle(color: Colors.white70),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.calendar_today, color: Colors.white70, size: 16),
+                                          const SizedBox(width: 4),
+                                          Flexible(
+                                            child: Text(
+                                              item.date,
+                                              style: const TextStyle(color: Colors.white70),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          const Icon(Icons.access_time, color: Colors.white70, size: 16),
+                                          const SizedBox(width: 4),
+                                          Flexible(
+                                            child: Text(
+                                              item.time,
+                                              style: const TextStyle(color: Colors.white70),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Amount: ${item.dose}',
-                                  style: const TextStyle(color: Colors.white70),
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
+                                const SizedBox(width: 8),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
-                                    const Icon(Icons.calendar_today, color: Colors.white70, size: 16),
-                                    const SizedBox(width: 4),
-                                    Flexible(
-                                      child: Text(
-                                        item.date,
-                                        style: const TextStyle(color: Colors.white70),
-                                        overflow: TextOverflow.ellipsis,
+                                    ElevatedButton(
+                                      onPressed: () => _deleteItem(item.id!),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.redAccent,
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    const Icon(Icons.access_time, color: Colors.white70, size: 16),
-                                    const SizedBox(width: 4),
-                                    Flexible(
-                                      child: Text(
-                                        item.time,
-                                        style: const TextStyle(color: Colors.white70),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
+                                      child: const Text('Delete', style: TextStyle(color: Colors.white)),
                                     ),
                                   ],
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              ElevatedButton(
-                                onPressed: () => _deleteItem(item.id!),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.redAccent,
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                                child: const Text('Delete', style: TextStyle(color: Colors.white)),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ],
         ),

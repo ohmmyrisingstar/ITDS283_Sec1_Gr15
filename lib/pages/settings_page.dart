@@ -19,7 +19,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   final TextEditingController _usernameController = TextEditingController();
-  bool _reminderOn = false;
+  bool _reminderOn = true;
   File? _profileImage;
   String? _profileImagePath;
   String _username = "User";
@@ -29,6 +29,14 @@ class _SettingsPageState extends State<SettingsPage> {
     super.initState();
     _loadUsername();
     _loadProfileImage();
+    _loadReminderToggle();
+  }
+
+  Future<void> _loadReminderToggle() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _reminderOn = prefs.getBool('reminder_on') ?? true;
+    });
   }
 
   Future<void> _loadUsername() async {
@@ -130,7 +138,6 @@ class _SettingsPageState extends State<SettingsPage> {
                 "Hi, $_username",
                 style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w600, color: Colors.white70),
               ),
-
               const SizedBox(height: 20),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -178,8 +185,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           alignment: Alignment.centerRight,
                           child: ElevatedButton(
                             onPressed: () async {
-                              final prefs =
-                                  await SharedPreferences.getInstance();
+                              final prefs = await SharedPreferences.getInstance();
                               final username = _usernameController.text.trim();
 
                               if (username.isNotEmpty) {
@@ -190,16 +196,11 @@ class _SettingsPageState extends State<SettingsPage> {
                               }
 
                               if (_profileImagePath != null) {
-                                await prefs.setString(
-                                  'profile_image_path',
-                                  _profileImagePath!,
-                                );
+                                await prefs.setString('profile_image_path', _profileImagePath!);
                               }
 
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Saved successfully'),
-                                ),
+                                const SnackBar(content: Text('Saved successfully')),
                               );
                             },
                             style: ElevatedButton.styleFrom(
@@ -208,10 +209,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 8,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                               elevation: 0,
                             ),
                             child: const Text("Apply"),
@@ -238,7 +236,11 @@ class _SettingsPageState extends State<SettingsPage> {
                         const Text("Reminder Message", style: TextStyle(color: Colors.white, fontSize: 16)),
                         Switch(
                           value: _reminderOn,
-                          onChanged: (val) => setState(() => _reminderOn = val),
+                          onChanged: (val) async {
+                            setState(() => _reminderOn = val);
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.setBool('reminder_on', val);
+                          },
                         ),
                       ],
                     ),
