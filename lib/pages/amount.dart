@@ -6,6 +6,7 @@ import 'addmed.dart';
 import 'homepage.dart';
 import 'searchpage.dart';
 import 'settings_page.dart';
+import 'package:intl/intl.dart';
 
 class AmountPage extends StatelessWidget {
   final List<Map<String, dynamic>> pills = [

@@ -130,6 +130,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 "Hi, $_username",
                 style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w600, color: Colors.white70),
               ),
+
               const SizedBox(height: 20),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,14 +177,41 @@ class _SettingsPageState extends State<SettingsPage> {
                         Align(
                           alignment: Alignment.centerRight,
                           child: ElevatedButton(
-                            onPressed: _saveUsername,
+                            onPressed: () async {
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              final username = _usernameController.text.trim();
+
+                              if (username.isNotEmpty) {
+                                await prefs.setString('username', username);
+                                setState(() {
+                                  _username = username;
+                                });
+                              }
+
+                              if (_profileImagePath != null) {
+                                await prefs.setString(
+                                  'profile_image_path',
+                                  _profileImagePath!,
+                                );
+                              }
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Saved successfully'),
+                                ),
+                              );
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFFCFF5C3),
                               foregroundColor: Colors.black,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 8,
+                              ),
                               elevation: 0,
                             ),
                             child: const Text("Apply"),
