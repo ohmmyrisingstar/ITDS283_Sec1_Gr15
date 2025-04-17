@@ -78,7 +78,14 @@ class _HistoryPageState extends State<HistoryPage> {
         backgroundColor: const Color(0xFF2E3047),
         elevation: 0,
         centerTitle: true,
-        title: const Text('History', style: TextStyle(fontSize: 24)),
+        title: const Text(
+          'History',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_forever),

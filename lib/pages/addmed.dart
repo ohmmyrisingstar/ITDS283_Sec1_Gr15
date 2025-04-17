@@ -61,7 +61,12 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
 
     final db = DatabaseHelper.instance;
     final imagePath = _imageFile?.path;
-    final DateTime remindTime = DateTime.now().add(_remindIn);
+
+    final DateTime remindTime = DateTime(
+      widget.selectedDate.year,
+      widget.selectedDate.month,
+      widget.selectedDate.day,
+    ).add(_remindIn);
 
     await db.insertMedicine(Medicine(
       name: name,
@@ -73,8 +78,8 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
 
     await NotificationService.scheduleNotification(
       id: remindTime.millisecondsSinceEpoch ~/ 1000,
-      title: 'ถึงเวลาทานยา',
-      body: 'อย่าลืมกินยา $name',
+      title: "Don't forget to take your pills!",
+      body: "It's time to take your $name brotherrr 💊⏰",
       scheduledTime: remindTime,
     );
 

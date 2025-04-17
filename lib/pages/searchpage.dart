@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../components/navbar.dart';
 import 'homepage.dart';
@@ -44,7 +45,7 @@ class _SearchPageState extends State<SearchPage> {
     } else if (index == 1) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => AmountPage()));
     } else if (index == 2) {
-      // current page
+      // current
     } else if (index == 3) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage()));
     }
@@ -113,10 +114,7 @@ class _SearchPageState extends State<SearchPage> {
                     ),
                     child: const Text(
                       "Search",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                     ),
                   ),
                 ],
@@ -124,15 +122,9 @@ class _SearchPageState extends State<SearchPage> {
             ),
             const SizedBox(height: 20),
             if (!_hasSearched)
-              const Text(
-                "Search results will appear here",
-                style: TextStyle(color: Colors.grey),
-              )
+              const Text("Search results will appear here", style: TextStyle(color: Colors.grey))
             else if (_results.isEmpty)
-              const Text(
-                "ไม่พบข้อมูลยาที่ค้นหา",
-                style: TextStyle(color: Colors.white70),
-              )
+              const Text("ไม่พบข้อมูลยาที่ค้นหา", style: TextStyle(color: Colors.white70))
             else
               Expanded(
                 child: ListView.builder(
@@ -149,32 +141,36 @@ class _SearchPageState extends State<SearchPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              ClipRRect(
+                          if (item.imagePath != null)
+                            Center(
+                              child: ClipRRect(
                                 borderRadius: BorderRadius.circular(12),
-                                child: Container(
-                                  width: 60,
-                                  height: 60,
-                                  color: Colors.black26,
-                                  child: const Icon(Icons.image, color: Colors.grey),
+                                child: Image(
+                                  image: item.imagePath!.startsWith('assets/')
+                                      ? AssetImage(item.imagePath!) as ImageProvider
+                                      : FileImage(File(item.imagePath!)),
+                                  width: 150,
+                                  height: 120,
+                                  fit: BoxFit.cover,
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  item.name,
-                                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ],
+                            ),
+                          const SizedBox(height: 12),
+                          Text(
+                            item.name,
+                            style: const TextStyle(color: Colors.greenAccent, fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 12),
-                          if (item.form != null) Text("• รูปแบบยา: ${item.form}", style: const TextStyle(color: Colors.white70)),
-                          if (item.dosage != null) Text("• ปริมาณ: ${item.dosage}", style: const TextStyle(color: Colors.white70)),
-                          if (item.usage != null) Text("• วิธีใช้: ${item.usage}", style: const TextStyle(color: Colors.white70)),
-                          if (item.sideEffects != null) Text("• ผลข้างเคียง: ${item.sideEffects}", style: const TextStyle(color: Colors.white70)),
-                          if (item.warnings != null) Text("• ข้อควรระวัง: ${item.warnings}", style: const TextStyle(color: Colors.white70)),
+                          if (item.form != null)
+                            Text("รูปแบบยา : ${item.form}", style: const TextStyle(color: Colors.white)),
+                          if (item.dosage != null)
+                            Text("ปริมาณ : ${item.dosage}", style: const TextStyle(color: Colors.white)),
+                          if (item.usage != null)
+                            Text("\nวิธีใช้ : ${item.usage}", style: const TextStyle(color: Colors.white)),
+                          if (item.sideEffects != null)
+                            Text("\nผลข้างเคียง : ${item.sideEffects}", style: const TextStyle(color: Colors.white)),
+                          if (item.warnings != null)
+                            Text("\nข้อควรระวัง : ${item.warnings}", style: const TextStyle(color: Colors.white)),
                         ],
                       ),
                     );
