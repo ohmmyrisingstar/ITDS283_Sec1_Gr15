@@ -108,6 +108,22 @@ class _HistoryPageState extends State<HistoryPage> {
                 itemCount: _historyItems.length,
                 itemBuilder: (context, index) {
                   final item = _historyItems[index];
+                  final imageWidget = (item.imagePath != null && File(item.imagePath!).existsSync())
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(100),
+                          child: Image.file(
+                            File(item.imagePath!),
+                            width: 52,
+                            height: 52,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : const CircleAvatar(
+                          radius: 26,
+                          backgroundColor: Colors.black26,
+                          child: Icon(Icons.camera_alt, color: Colors.grey),
+                        );
+
                   return Container(
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(16),
@@ -122,21 +138,7 @@ class _HistoryPageState extends State<HistoryPage> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          item.imagePath != null
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(100),
-                                  child: Image.file(
-                                    File(item.imagePath!),
-                                    width: 52,
-                                    height: 52,
-                                    fit: BoxFit.cover,
-                                  ),
-                                )
-                              : const CircleAvatar(
-                                  radius: 26,
-                                  backgroundColor: Colors.black26,
-                                  child: Icon(Icons.camera_alt, color: Colors.grey),
-                                ),
+                          imageWidget,
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'pages/homepage.dart';
+import 'helpers/notification.dart'; // ✅ import notification service
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.init(); // ✅ initialize local notification
   runApp(const PillMateApp());
 }
 

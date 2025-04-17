@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/helpers/database.dart';
+import 'package:flutter_application_1/models/medicine.dart';
 import '../components/navbar.dart';
 import 'addmed.dart';
 import 'homepage.dart';
@@ -7,18 +9,25 @@ import 'settings_page.dart';
 
 class AmountPage extends StatelessWidget {
   final List<Map<String, dynamic>> pills = [
-    {"name": "Paracetamol", "amount": 1},
-    {"name": "Vitamins", "amount": 2},
-    {"name": "Vitamins", "amount": 3},
+
   ];
 
   void _onTabTapped(BuildContext context, int index) {
     if (index == 0) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomePage()));
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+      );
     } else if (index == 2) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchPage()));
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SearchPage()),
+      );
     } else if (index == 3) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage()));
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SettingsPage()),
+      );
     }
   }
 
@@ -38,16 +47,47 @@ class AmountPage extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 80),
-        itemCount: pills.length,
-        itemBuilder: (context, index) {
-          return PillCard(
-            pillName: pills[index]['name'],
-            initialAmount: pills[index]['amount'],
+      body: FutureBuilder<List<Medicine>>( //ยาจากฐานข้อมูล → แสดงผลจาก DB
+        future: DatabaseHelper.instance.getAllMedicines(),
+        builder: (context, snapshot) {
+          List<Widget> pillWidgets = [];
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+            pillWidgets =
+                snapshot.data!
+                    .map(
+                      (medicine) => PillCard(
+                        pillName: medicine.name,
+                        initialAmount: medicine.dose,
+                        id: medicine.id,
+                        time: medicine.time,  
+                        date: medicine.date,
+                      ),
+                    )
+                    .toList();
+          } else {
+            pillWidgets =
+                pills
+                    .map(
+                      (pill) => PillCard(
+                        pillName: pill['name'],
+                        initialAmount: pill['amount'],
+                      ),
+                    )
+                    .toList();
+          }
+
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 80),
+            children: pillWidgets,
           );
         },
       ),
+
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -70,13 +110,19 @@ class AmountPage extends StatelessWidget {
   }
 }
 
-class PillCard extends StatefulWidget {
+class PillCard extends StatefulWidget { //เพิ่ม id ให้ PillCard ด้วย (เอาไว้ใช้ตอน apply เพื่ออัปเดต DB)
   final String pillName;
   final int initialAmount;
+  final int? id;
+  final String? time; 
+  final String? date;
 
   const PillCard({
     required this.pillName,
     required this.initialAmount,
+    this.id,
+    this.time, 
+    this.date,
     Key? key,
   }) : super(key: key);
 
@@ -86,7 +132,7 @@ class PillCard extends StatefulWidget {
 
 class _PillCardState extends State<PillCard> {
   late int selectedAmount;
-
+  
   @override
   void initState() {
     super.initState();
@@ -116,7 +162,10 @@ class _PillCardState extends State<PillCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Pill Name", style: TextStyle(color: Colors.grey.shade400)),
+                Text(
+                  "Pill Name",
+                  style: TextStyle(color: Colors.grey.shade400),
+                ),
                 Text(
                   widget.pillName,
                   style: const TextStyle(
@@ -126,7 +175,10 @@ class _PillCardState extends State<PillCard> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                Text("Amount to take", style: TextStyle(color: Colors.grey.shade400)),
+                Text(
+                  "Amount to take",
+                  style: TextStyle(color: Colors.grey.shade400),
+                ),
                 const SizedBox(height: 4),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -138,15 +190,18 @@ class _PillCardState extends State<PillCard> {
                     child: DropdownButton<int>(
                       value: selectedAmount,
                       dropdownColor: const Color(0xFF2E3441),
-                      items: [1, 2, 3, 4, 5]
-                          .map((val) => DropdownMenuItem(
-                                value: val,
-                                child: Text(
-                                  val.toString(),
-                                  style: const TextStyle(color: Colors.white),
+                      items:
+                          [1, 2, 3, 4, 5]
+                              .map(
+                                (val) => DropdownMenuItem(
+                                  value: val,
+                                  child: Text(
+                                    val.toString(),
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
                                 ),
-                              ))
-                          .toList(),
+                              )
+                              .toList(),
                       onChanged: (val) {
                         if (val != null) {
                           setState(() {
@@ -162,13 +217,31 @@ class _PillCardState extends State<PillCard> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: ElevatedButton(
-                    onPressed: () {
-                      // TODO: Save new amount
+                    onPressed: () async { //Apply เพิ่มการอัปเดตข้อมูลถ้า id
+                      if (widget.id != null) {
+                        final updatedMedicine = Medicine(
+                          id: widget.id!,
+                          name: widget.pillName,
+                          dose: selectedAmount,
+                          time: widget.time ?? '', // ใส่ค่าจริงถ้ามี
+                          date: widget.date ?? '', // ใส่ค่าจริงถ้ามี
+                          imagePath: null,
+                        );
+                        await DatabaseHelper.instance.updateMedicine(
+                          updatedMedicine,
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Updated successfully")),
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFD0F0C0),
                       foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 6,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),

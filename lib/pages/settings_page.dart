@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
-
 import 'aboutus.dart';
 import 'searchpage.dart';
 import 'homepage.dart';
 import 'addmed.dart';
 import 'amount.dart';
 import '../components/navbar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -19,26 +20,80 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   final TextEditingController _usernameController = TextEditingController();
   bool _reminderOn = false;
+  File? _profileImage;
+  String? _profileImagePath;
+  String _username = "User";
 
-  void _onTabTapped(int index) {
-    if (index == 0) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomePage()));
-    } else if (index == 1) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => AmountPage()));
-    } else if (index == 2) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchPage()));
-    } else if (index == 3) {
-      // current page
+  @override
+  void initState() {
+    super.initState();
+    _loadUsername();
+    _loadProfileImage();
+  }
+
+  Future<void> _loadUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _username = prefs.getString('username') ?? "User";
+      _usernameController.text = _username;
+    });
+  }
+
+  Future<void> _loadProfileImage() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _profileImagePath = prefs.getString('profile_image_path');
+      if (_profileImagePath != null) {
+        _profileImage = File(_profileImagePath!);
+      }
+    });
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _profileImage = File(pickedFile.path);
+        _profileImagePath = pickedFile.path;
+      });
     }
   }
 
-  void _saveUsername() {
+  void _saveUsername() async {
     final username = _usernameController.text.trim();
     if (username.isNotEmpty) {
-      // You could persist this using SharedPreferences or local db
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('username', username);
+
+      setState(() {
+        _username = username;
+      });
+
+      if (_profileImagePath != null) {
+        await prefs.setString('profile_image_path', _profileImagePath!);
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Username saved: $username')),
+        const SnackBar(content: Text('Saved successfully')),
       );
+    }
+  }
+
+  void _onItemTapped(int index) async {
+    if (index == 0) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+        (route) => false,
+      );
+    } else if (index == 1) {
+      await Navigator.push(context, MaterialPageRoute(builder: (_) => AmountPage()));
+    } else if (index == 2) {
+      await Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchPage()));
+    } else if (index == 3) {
+      // already on settings
     }
   }
 
@@ -70,26 +125,28 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 16),
-              const Text(
-                "Hi, User",
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600, color: Colors.white70),
+              Text(
+                "Hi, $_username",
+                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w600, color: Colors.white70),
               ),
               const SizedBox(height: 20),
-
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Column(
                     children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundColor: Colors.white,
-                        child: Icon(Icons.camera_alt, size: 32, color: Colors.grey[700]),
+                      GestureDetector(
+                        onTap: _pickImage,
+                        child: CircleAvatar(
+                          radius: 40,
+                          backgroundColor: Colors.white,
+                          backgroundImage: _profileImage != null ? FileImage(_profileImage!) : null,
+                          child: _profileImage == null
+                              ? Icon(Icons.camera_alt, size: 32, color: Colors.grey[700])
+                              : null,
+                        ),
                       ),
-                      const SizedBox(height: 6),
-                      const Text("Profile Picture", style: TextStyle(color: Colors.white70)),
                     ],
                   ),
                   const SizedBox(width: 20),
@@ -137,7 +194,6 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 32),
               Container(
                 padding: const EdgeInsets.all(16),
@@ -166,7 +222,6 @@ class _SettingsPageState extends State<SettingsPage> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 32),
               Row(
                 children: [
@@ -251,7 +306,7 @@ class _SettingsPageState extends State<SettingsPage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomNavBar(
         currentIndex: 3,
-        onTap: _onTabTapped,
+        onTap: _onItemTapped,
       ),
     );
   }

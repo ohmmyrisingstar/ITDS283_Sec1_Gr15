@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'addmed.dart';
@@ -8,6 +9,8 @@ import 'history.dart';
 import '../components/navbar.dart';
 import '../helpers/database.dart';
 import '../models/medicine.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -22,14 +25,24 @@ class _HomePageState extends State<HomePage> {
   DateTime selectedDate = DateTime.now();
   List<Medicine> _medicines = [];
 
-  void _onItemTapped(int index) {
+  void _onItemTapped(int index) async {
     if (index == 0) return;
     if (index == 1) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => AmountPage()));
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => AmountPage()),
+      );
     } else if (index == 2) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchPage()));
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SearchPage()),
+      );
     } else if (index == 3) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage()));
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SettingsPage()),
+      );
+      await _loadUserData(); // ✅ โหลดทั้งชื่อและรูป
     }
   }
 
@@ -76,7 +89,36 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadMedicines();
+    // _loadUsername();
+    _loadUserData();
   }
+
+  String? _profileImagePath;
+  String _username = "User";
+  File? _profileImage;
+
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _username = prefs.getString('username') ?? 'User';
+
+      final imagePath = prefs.getString('profile_image_path');
+      if (imagePath != null) {
+        _profileImage = File(imagePath);
+      } else {
+        profileImage =
+            prefs.getString('profileImage') ??
+            "https://via.placeholder.com/150";
+      }
+    });
+  }
+
+  // Future<void> _loadUsername() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   setState(() {
+  //     _username = prefs.getString('username') ?? "User";
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -93,14 +135,31 @@ class _HomePageState extends State<HomePage> {
                 CircleAvatar(
                   radius: 28,
                   backgroundColor: Colors.white,
-                  backgroundImage: NetworkImage(profileImage),
+                  backgroundImage:
+                      _profileImage != null
+                          ? FileImage(_profileImage!) as ImageProvider
+                          : NetworkImage(profileImage),
                 ),
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text("Hi, User", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                    Text("Welcome to PillMate", style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic, color: Colors.grey)),
+                  children: [
+                    Text(
+                      "Hi, $_username",
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const Text(
+                      "Welcome to PillMate",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontStyle: FontStyle.italic,
+                        color: Colors.grey,
+                      ),
+                    ),
                   ],
                 ),
                 const Spacer(),
