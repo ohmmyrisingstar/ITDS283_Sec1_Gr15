@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
-
 import 'aboutus.dart';
 import 'searchpage.dart';
 import 'homepage.dart';
 import 'addmed.dart';
 import 'amount.dart';
 import '../components/navbar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart'; // ถ้าอยากให้เปลี่ยนรูปในอนาคต
+
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -20,27 +22,90 @@ class _SettingsPageState extends State<SettingsPage> {
   final TextEditingController _usernameController = TextEditingController();
   bool _reminderOn = false;
 
-  void _onTabTapped(int index) {
-    if (index == 0) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomePage()));
-    } else if (index == 1) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => AmountPage()));
+  void _onItemTapped(int index) async {
+    if (index == 0) return;
+    if (index == 1) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => AmountPage()),
+      );
     } else if (index == 2) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchPage()));
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SearchPage()),
+      );
     } else if (index == 3) {
-      // current page
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SettingsPage()),
+      );
+      _loadUsername(); // โหลดชื่อใหม่หลังกลับจาก Settings
     }
   }
 
-  void _saveUsername() {
-    final username = _usernameController.text.trim();
-    if (username.isNotEmpty) {
-      // You could persist this using SharedPreferences or local db
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Username saved: $username')),
-      );
+  File? _profileImage;
+  String? _profileImagePath;
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _profileImage = File(pickedFile.path);
+        _profileImagePath = pickedFile.path;
+      });
     }
   }
+
+  String _username = "User";
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUsername();
+    _loadProfileImage();
+  }
+
+  Future<void> _loadProfileImage() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _profileImagePath = prefs.getString('profile_image_path');
+      if (_profileImagePath != null) {
+        _profileImage = File(_profileImagePath!);
+      }
+    });
+  }
+
+  Future<void> _loadUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _username = prefs.getString('username') ?? "User";
+      _usernameController.text = _username; // แสดงใน textfield ด้วย
+    });
+  }
+
+  void _saveUsername() async {
+  final username = _usernameController.text.trim();
+  if (username.isNotEmpty) {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('username', username);
+
+    setState(() {
+      _username = username;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Username saved: $username')),
+    );
+  }
+}
+
+  Future<String> _getUsername() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString('username') ?? "User";
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -70,12 +135,16 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 16),
-              const Text(
-                "Hi, User",
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600, color: Colors.white70),
+              Text(
+                "Hi, $_username",
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white70,
+                ),
               ),
+
               const SizedBox(height: 20),
 
               Row(
@@ -83,13 +152,26 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: [
                   Column(
                     children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundColor: Colors.white,
-                        child: Icon(Icons.camera_alt, size: 32, color: Colors.grey[700]),
+                      GestureDetector(
+                        onTap: _pickImage,
+                        child: CircleAvatar(
+                          radius: 40,
+                          backgroundColor: Colors.white,
+                          backgroundImage:
+                              _profileImage != null
+                                  ? FileImage(_profileImage!)
+                                  : null,
+                          child:
+                              _profileImage == null
+                                  ? Icon(
+                                    Icons.camera_alt,
+                                    size: 32,
+                                    color: Colors.grey[700],
+                                  )
+                                  : null,
+                        ),
                       ),
-                      const SizedBox(height: 6),
-                      const Text("Profile Picture", style: TextStyle(color: Colors.white70)),
+
                     ],
                   ),
                   const SizedBox(width: 20),
@@ -119,14 +201,41 @@ class _SettingsPageState extends State<SettingsPage> {
                         Align(
                           alignment: Alignment.centerRight,
                           child: ElevatedButton(
-                            onPressed: _saveUsername,
+                            onPressed: () async {
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              final username = _usernameController.text.trim();
+
+                              if (username.isNotEmpty) {
+                                await prefs.setString('username', username);
+                                setState(() {
+                                  _username = username;
+                                });
+                              }
+
+                              if (_profileImagePath != null) {
+                                await prefs.setString(
+                                  'profile_image_path',
+                                  _profileImagePath!,
+                                );
+                              }
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Saved successfully'),
+                                ),
+                              );
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFFCFF5C3),
                               foregroundColor: Colors.black,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 8,
+                              ),
                               elevation: 0,
                             ),
                             child: const Text("Apply"),
@@ -251,7 +360,7 @@ class _SettingsPageState extends State<SettingsPage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomNavBar(
         currentIndex: 3,
-        onTap: _onTabTapped,
+        onTap: _onItemTapped,
       ),
     );
   }
