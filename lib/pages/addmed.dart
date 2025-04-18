@@ -20,6 +20,7 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
   File? _imageFile;
   final TextEditingController _nameController = TextEditingController();
   Duration _remindIn = const Duration(hours: 1);
+  TimeOfDay _selectedTime = TimeOfDay.now();
 
   void _showImagePickerDialog() {
     showDialog(
@@ -63,30 +64,36 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
     final db = DatabaseHelper.instance;
     final imagePath = _imageFile?.path;
 
-    final DateTime now = DateTime.now();
-    final DateTime remindTime = DateTime(
-      widget.selectedDate.year,
-      widget.selectedDate.month,
-      widget.selectedDate.day,
-      now.hour,
-      now.minute,
-      now.second,
-    ).add(_remindIn);
+    DateTime remindTime;
+    final now = DateTime.now();
+    if (_isToday(widget.selectedDate)) {
+      remindTime = now.add(_remindIn);
+    } else {
+      remindTime = DateTime(
+        widget.selectedDate.year,
+        widget.selectedDate.month,
+        widget.selectedDate.day,
+        _selectedTime.hour,
+        _selectedTime.minute,
+      );
+    }
 
-    await db.insertMedicine(Medicine(
+    final medicine = Medicine(
       name: name,
       dose: 1,
       time: DateFormat.jm().format(remindTime),
       date: DateFormat('yyyy-MM-dd').format(widget.selectedDate),
       imagePath: imagePath,
-    ));
+    );
+
+    final medicineId = await db.insertMedicine(medicine);
 
     final prefs = await SharedPreferences.getInstance();
     final notificationsEnabled = prefs.getBool('reminder_on') ?? true;
 
     if (notificationsEnabled) {
       await NotificationService.scheduleNotification(
-        id: remindTime.millisecondsSinceEpoch ~/ 1000,
+        id: medicineId,
         title: "Don't forget to take your pills!",
         body: "It's time to take your $name brotherrr 💊⏰",
         scheduledTime: remindTime,
@@ -97,13 +104,20 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
     Navigator.pop(context);
   }
 
+  bool _isToday(DateTime date) {
+    final now = DateTime.now();
+    return now.year == date.year && now.month == date.month && now.day == date.day;
+  }
+
   String formatDuration(Duration d) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
-    return "${twoDigits(d.inHours)} hr ${twoDigits(d.inMinutes % 60)} min ${twoDigits(d.inSeconds % 60)} sec";
+    return "${twoDigits(d.inHours)} hr ${twoDigits(d.inMinutes % 60)} min";
   }
 
   @override
   Widget build(BuildContext context) {
+    final isToday = _isToday(widget.selectedDate);
+
     return Scaffold(
       backgroundColor: const Color(0xFF2E3047),
       body: SafeArea(
@@ -182,7 +196,7 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const Text("Remind Me In", style: TextStyle(color: Colors.white70)),
+                    Text(isToday ? "Remind Me In" : "Select Time", style: const TextStyle(color: Colors.white70)),
                     const SizedBox(height: 8),
                     Container(
                       height: 150,
@@ -190,20 +204,31 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
                         color: const Color(0xFF1E2230),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: CupertinoTimerPicker(
-                        mode: CupertinoTimerPickerMode.hms,
-                        initialTimerDuration: _remindIn,
-                        onTimerDurationChanged: (Duration val) {
-                          setState(() {
-                            _remindIn = val;
-                          });
-                        },
-                      ),
+                      child: isToday
+                          ? CupertinoTimerPicker(
+                              mode: CupertinoTimerPickerMode.hms,
+                              initialTimerDuration: _remindIn,
+                              onTimerDurationChanged: (val) => setState(() => _remindIn = val),
+                            )
+                          : CupertinoDatePicker(
+                              mode: CupertinoDatePickerMode.time,
+                              use24hFormat: true,
+                              initialDateTime: DateTime(
+                                widget.selectedDate.year,
+                                widget.selectedDate.month,
+                                widget.selectedDate.day,
+                                _selectedTime.hour,
+                                _selectedTime.minute,
+                              ),
+                              onDateTimeChanged: (val) => setState(() {
+                                _selectedTime = TimeOfDay.fromDateTime(val);
+                              }),
+                            ),
                     ),
                     const SizedBox(height: 12),
                     Center(
                       child: Text(
-                        formatDuration(_remindIn),
+                        isToday ? formatDuration(_remindIn) : _selectedTime.format(context),
                         style: const TextStyle(color: Colors.white70, fontSize: 16),
                       ),
                     ),

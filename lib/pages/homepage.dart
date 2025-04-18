@@ -11,7 +11,6 @@ import '../helpers/database.dart';
 import '../models/medicine.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -42,7 +41,7 @@ class _HomePageState extends State<HomePage> {
         context,
         MaterialPageRoute(builder: (_) => const SettingsPage()),
       );
-      await _loadUserData(); // ✅ โหลดทั้งชื่อและรูป
+      await _loadUserData();
     }
   }
 
@@ -60,6 +59,8 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         selectedDate = picked;
       });
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('selected_date', DateFormat('yyyy-MM-dd').format(picked));
       await _loadMedicines();
     }
   }
@@ -79,7 +80,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _loadMedicines() async {
-    final meds = await DatabaseHelper.instance.getMedicinesByDate(DateFormat('yyyy-MM-dd').format(selectedDate));
+    final meds = await DatabaseHelper.instance.getMedicinesByDate(
+        DateFormat('yyyy-MM-dd').format(selectedDate));
     setState(() {
       _medicines = meds;
     });
@@ -88,8 +90,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _loadMedicines();
-    // _loadUsername();
+    _loadSelectedDate().then((_) => _loadMedicines());
     _loadUserData();
   }
 
@@ -101,24 +102,26 @@ class _HomePageState extends State<HomePage> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _username = prefs.getString('username') ?? 'User';
-
       final imagePath = prefs.getString('profile_image_path');
       if (imagePath != null) {
         _profileImage = File(imagePath);
       } else {
-        profileImage =
-            prefs.getString('profileImage') ??
+        profileImage = prefs.getString('profileImage') ??
             "https://via.placeholder.com/150";
       }
     });
   }
 
-  // Future<void> _loadUsername() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   setState(() {
-  //     _username = prefs.getString('username') ?? "User";
-  //   });
-  // }
+  Future<void> _loadSelectedDate() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getString('selected_date');
+    if (stored != null) {
+      final parsed = DateTime.tryParse(stored);
+      if (parsed != null) {
+        selectedDate = parsed;
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -135,10 +138,9 @@ class _HomePageState extends State<HomePage> {
                 CircleAvatar(
                   radius: 28,
                   backgroundColor: Colors.white,
-                  backgroundImage:
-                      _profileImage != null
-                          ? FileImage(_profileImage!) as ImageProvider
-                          : NetworkImage(profileImage),
+                  backgroundImage: _profileImage != null
+                      ? FileImage(_profileImage!) as ImageProvider
+                      : NetworkImage(profileImage),
                 ),
                 const SizedBox(width: 12),
                 Column(
@@ -166,7 +168,9 @@ class _HomePageState extends State<HomePage> {
                 IconButton(
                   icon: const Icon(Icons.receipt_long, color: Colors.white),
                   onPressed: () async {
-                    await Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoryPage()));
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const HistoryPage()));
                     _loadMedicines();
                   },
                 ),
@@ -182,7 +186,10 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Text(
                     _monthYearString(selectedDate),
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
                   ),
                   const Icon(Icons.keyboard_arrow_down, color: Colors.white),
                 ],
@@ -215,14 +222,17 @@ class _HomePageState extends State<HomePage> {
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: isSelected ? Colors.greenAccent[400] : Colors.transparent,
+                          color: isSelected
+                              ? Colors.greenAccent[400]
+                              : Colors.transparent,
                           shape: BoxShape.circle,
                         ),
                         child: Text(
                           "${date.day}",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: isSelected ? Colors.black : Colors.white,
+                            color:
+                                isSelected ? Colors.black : Colors.white,
                           ),
                         ),
                       ),
@@ -234,15 +244,21 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 20),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("Pills To Take", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                const Text("Pills To Take",
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white)),
                 Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.chevron_left, size: 18, color: Colors.white),
+                      icon: const Icon(Icons.chevron_left,
+                          size: 18, color: Colors.white),
                       onPressed: () {
                         setState(() {
                           selectedDate = selectedDate.subtract(const Duration(days: 1));
@@ -252,7 +268,8 @@ class _HomePageState extends State<HomePage> {
                     ),
                     const SizedBox(width: 8),
                     IconButton(
-                      icon: const Icon(Icons.chevron_right, size: 18, color: Colors.white),
+                      icon: const Icon(Icons.chevron_right,
+                          size: 18, color: Colors.white),
                       onPressed: () {
                         setState(() {
                           selectedDate = selectedDate.add(const Duration(days: 1));
@@ -266,12 +283,24 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: _medicines.map((med) {
-                return PillCard(name: med.name, dose: "${med.dose} pills", time: med.time, initialTaken: false);
-              }).toList(),
-            ),
+            child: _medicines.isEmpty
+                ? const Center(
+                    child: Text(
+                      'There are no pills for today.',
+                      style: TextStyle(color: Colors.white60),
+                    ),
+                  )
+                : ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    children: _medicines.map((med) {
+                      return PillCard(
+                        name: med.name,
+                        dose: "${med.dose} pills",
+                        time: med.time,
+                        initialTaken: false,
+                      );
+                    }).toList(),
+                  ),
           ),
         ],
       ),
@@ -280,7 +309,7 @@ class _HomePageState extends State<HomePage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => AddMedicinePage(selectedDate: selectedDate),
+              builder: (_) => AddMedicinePage(selectedDate: selectedDate), // ✅ ใช้ selectedDate
             ),
           ).then((_) => _loadMedicines());
         },
