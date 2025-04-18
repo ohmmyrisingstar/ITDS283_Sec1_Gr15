@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
-import '../components/navbar.dart'; // ✅ import navbar
+import 'package:flutter/services.dart';
+import '../components/navbar.dart';
+import 'addmed.dart';
 import 'homepage.dart';
 import 'searchpage.dart';
+import 'amount.dart';
 import 'settings_page.dart';
 
 class AboutUsPage extends StatelessWidget {
   const AboutUsPage({super.key});
 
-  void _onTabTapped(BuildContext context, int index) {
+  void _onItemTapped(BuildContext context, int index) {
     if (index == 0) {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomePage()));
+    } else if (index == 1) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => AmountPage()));
     } else if (index == 2) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchPage()));
     } else if (index == 3) {
@@ -24,72 +29,103 @@ class AboutUsPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF2E3047),
         elevation: 0,
-        centerTitle: true,
         title: const Text(
           "About Us",
-          style: TextStyle(color: Colors.white, fontSize: 22),
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
-        leading: const SizedBox(),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          )
-        ],
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Center(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 150),
-              const Text(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "PillMate",
+              style: TextStyle(
+                fontSize: 26,
+                color: Colors.greenAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              "PillMate is your personal medication reminder app. "
+              "We help ensure that you never forget to take your medicine "
+              "by providing timely reminders with a simple and clean interface.",
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.white70,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              "Version: 1.0.0",
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white54,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const Spacer(),
+            const Center(
+              child: Text(
                 "Scan here to know more about us",
-                style: TextStyle(color: Colors.white70, fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    Image.network(
-                      'https://api.qrserver.com/v1/create-qr-code/?data=https://onespotapps.com&size=200x200',
-                      width: 200,
-                      height: 200,
-                      fit: BoxFit.cover,
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      "SCAN ME!",
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
-                    ),
-                  ],
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white70,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 12),
+            Center(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.asset(
+                  'assets/images/pillmatedev.png',
+                  width: 200,
+                  height: 200,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Center(
+              child: Text(
+                "SCAN ME!",
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("FAB clicked!")),
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => AddMedicinePage(selectedDate: DateTime.now())),
           );
         },
         backgroundColor: Colors.white,
-        shape: const CircleBorder(),
         child: const Icon(Icons.favorite, color: Colors.black, size: 32),
+        shape: const CircleBorder(),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomNavBar(
-        currentIndex: -1, // ❌ ไม่มี tab ตรงกับ "About Us"
-        onTap: (index) => _onTabTapped(context, index),
+        currentIndex: -1,
+        onTap: (index) => _onItemTapped(context, index),
       ),
     );
   }
