@@ -8,6 +8,7 @@ import 'settings_page.dart';
 import 'amount.dart';
 import '../helpers/database.dart';
 import '../models/medicine.dart';
+import '../helpers/notification.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -33,6 +34,7 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   Future<void> _deleteItem(int id) async {
+    await NotificationService.cancel(id); // ✅ ยกเลิกการแจ้งเตือนก่อนลบ
     await DatabaseHelper.instance.deleteMedicine(id);
     _loadHistory();
   }
@@ -52,6 +54,7 @@ class _HistoryPageState extends State<HistoryPage> {
 
     if (confirm == true) {
       for (var item in _historyItems) {
+        await NotificationService.cancel(item.id!); // ✅ ยกเลิกทีละตัว
         await DatabaseHelper.instance.deleteMedicine(item.id!);
       }
       _loadHistory();

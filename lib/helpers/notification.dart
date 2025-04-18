@@ -7,14 +7,11 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   static Future<void> init() async {
-    // ✅ Initialize timezones
     tz.initializeTimeZones();
 
-    // ✅ Android settings
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    // ✅ iOS settings
     const DarwinInitializationSettings iosSettings =
         DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -22,7 +19,6 @@ class NotificationService {
       requestSoundPermission: true,
     );
 
-    // ✅ Combine platform settings
     const InitializationSettings settings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
@@ -37,7 +33,6 @@ class NotificationService {
     required String body,
     required DateTime scheduledTime,
   }) async {
-    // ✅ Check that the time is in the future
     if (scheduledTime.isBefore(DateTime.now())) {
       print("❌ Cannot schedule a notification in the past: $scheduledTime");
       return;
@@ -62,11 +57,14 @@ class NotificationService {
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
+      matchDateTimeComponents: null,
     );
   }
 
-  // ✅ Clear all scheduled notifications
+  static Future<void> cancel(int id) async {
+    await _notificationsPlugin.cancel(id);
+  }
+
   static Future<void> cancelAll() async {
     await _notificationsPlugin.cancelAll();
   }
